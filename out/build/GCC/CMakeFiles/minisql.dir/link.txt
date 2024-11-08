@@ -1,0 +1,3 @@
+"C:\Program Files (x86)\cpeditor\mingw64\bin\cmake.exe" -E rm -f CMakeFiles\minisql.dir/objects.a
+C:\PROGRA~2\cpeditor\mingw64\bin\ar.exe qc CMakeFiles\minisql.dir/objects.a @CMakeFiles\minisql.dir\objects1.rsp
+C:\PROGRA~2\cpeditor\mingw64\bin\G__~1.EXE -g -Wl,--whole-archive CMakeFiles\minisql.dir/objects.a -Wl,--no-whole-archive -o minisql.exe -Wl,--out-implib,libminisql.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\minisql.dir\linkLibs.rsp

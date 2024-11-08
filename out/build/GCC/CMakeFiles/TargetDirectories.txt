@@ -1,0 +1,8 @@
+D:/OneDrive - HKUST (Guangzhou)/Classes/UFUG2601 C++ Programming/Project - miniSQL/out/build/GCC/CMakeFiles/minisql.dir
+D:/OneDrive - HKUST (Guangzhou)/Classes/UFUG2601 C++ Programming/Project - miniSQL/out/build/GCC/CMakeFiles/test.dir
+D:/OneDrive - HKUST (Guangzhou)/Classes/UFUG2601 C++ Programming/Project - miniSQL/out/build/GCC/CMakeFiles/edit_cache.dir
+D:/OneDrive - HKUST (Guangzhou)/Classes/UFUG2601 C++ Programming/Project - miniSQL/out/build/GCC/CMakeFiles/rebuild_cache.dir
+D:/OneDrive - HKUST (Guangzhou)/Classes/UFUG2601 C++ Programming/Project - miniSQL/out/build/GCC/CMakeFiles/list_install_components.dir
+D:/OneDrive - HKUST (Guangzhou)/Classes/UFUG2601 C++ Programming/Project - miniSQL/out/build/GCC/CMakeFiles/install.dir
+D:/OneDrive - HKUST (Guangzhou)/Classes/UFUG2601 C++ Programming/Project - miniSQL/out/build/GCC/CMakeFiles/install/local.dir
+D:/OneDrive - HKUST (Guangzhou)/Classes/UFUG2601 C++ Programming/Project - miniSQL/out/build/GCC/CMakeFiles/install/strip.dir
