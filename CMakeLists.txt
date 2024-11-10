@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(minisql VERSION 0.1.0 LANGUAGES CXX)
+project(miniSQL VERSION 0.1.0 LANGUAGES CXX)
 
 # 设置C++标准
 set(CMAKE_CXX_STANDARD 17)
@@ -20,7 +20,6 @@ set(SOURCES
     src/parser.cpp
     src/lexer.cpp
     src/table.cpp
-    src/utils.cpp
 )
 
 # 头文件
@@ -33,13 +32,13 @@ set(HEADERS
 )
 
 # 可执行文件
-add_executable(minisql ${SOURCES} ${HEADERS})
+add_executable(minidb ${SOURCES} ${HEADERS})
 
 # 包含目录
-target_include_directories(minisql PRIVATE src)
+target_include_directories(minidb PRIVATE src)
 
 # 安装规则
-install(TARGETS minisql
+install(TARGETS minidb
     RUNTIME DESTINATION bin
 )
 
@@ -48,5 +47,5 @@ enable_testing()
 
 # 添加测试用例
 add_test(NAME sql_test
-         COMMAND minisql ${CMAKE_SOURCE_DIR}/test/test.sql
+         COMMAND minidb ${CMAKE_SOURCE_DIR}/test/test.sql ${CMAKE_BINARY_DIR}/test_output.csv
          WORKING_DIRECTORY ${CMAKE_BINARY_DIR}) 

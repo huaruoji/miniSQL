@@ -1,4 +1,4 @@
-D:/OneDrive - HKUST (Guangzhou)/Classes/UFUG2601 C++ Programming/Project - miniSQL/out/build/GCC/CMakeFiles/minisql.dir
+D:/OneDrive - HKUST (Guangzhou)/Classes/UFUG2601 C++ Programming/Project - miniSQL/out/build/GCC/CMakeFiles/minidb.dir
 D:/OneDrive - HKUST (Guangzhou)/Classes/UFUG2601 C++ Programming/Project - miniSQL/out/build/GCC/CMakeFiles/test.dir
 D:/OneDrive - HKUST (Guangzhou)/Classes/UFUG2601 C++ Programming/Project - miniSQL/out/build/GCC/CMakeFiles/edit_cache.dir
 D:/OneDrive - HKUST (Guangzhou)/Classes/UFUG2601 C++ Programming/Project - miniSQL/out/build/GCC/CMakeFiles/rebuild_cache.dir

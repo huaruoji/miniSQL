@@ -1,39 +1,67 @@
 #include "database.hpp"
+#include "lexer.hpp"
 #include "parser.hpp"
 #include <fstream>
 #include <iostream>
 #include <string>
 
-
-void executeFromFile(const std::string &filename, Database &db) {
-  std::ifstream file(filename);
-  if (!file.is_open()) {
-    std::cerr << "Cannot open file: " << filename << std::endl;
-    return;
+int main(int argc, char *argv[]) {
+  if (argc != 3) {
+    std::cerr << "Usage: " << argv[0]
+              << " <input_file_name>.sql <output_file_name>.csv" << std::endl;
+    return 1;
   }
 
+  // 读取SQL文件内容
+  std::ifstream inFile(argv[1]);
+  if (!inFile) {
+    std::cerr << "Cannot open input file: " << argv[1] << std::endl;
+    return 1;
+  }
+  std::string content((std::istreambuf_iterator<char>(inFile)), {});
+
+  // 准备输出CSV文件
+  std::ofstream outFile(argv[2], std::ios::out | std::ios::trunc);
+  if (!outFile) {
+    std::cerr << "Cannot open output file: " << argv[2] << std::endl;
+    return 1;
+  }
+
+  // 初始化数据库、解析器和词法分析器
+  Database db;
   Parser parser;
-  std::string currentQuery;
-  std::string line;
+  Lexer lexer(content);
+  std::vector<Token> currentTokens;
 
-  while (std::getline(file, line)) {
-    // 跳过空行和注释
-    if (line.empty() || line[0] == '#' || line[0] == '-')
-      continue;
+  // Process tokens until end of file
+  while (lexer.hasMoreTokens()) {
+    Token token = lexer.nextToken();
 
-    // 移除前后空白
-    line.erase(0, line.find_first_not_of(" \t"));
-    line.erase(line.find_last_not_of(" \t") + 1);
+    if (token.type == TokenType::END) {
+      break;
+    }
 
-    currentQuery += line + " ";
+    // Add token to current collection
+    currentTokens.push_back(token);
 
-    if (line.back() == ';') {
-      // 移除末尾分号
-      currentQuery = currentQuery.substr(0, currentQuery.length() - 1);
+    // When we hit a semicolon, parse and execute the query
+    if (token.type == TokenType::SEMICOLON) {
       try {
-        Query query = parser.parse(currentQuery);
+        Query query = parser.parse(currentTokens);
 
         switch (query.type) {
+        case QueryType::CREATE_DATABASE:
+          // TODO: 实现创建数据库的功能
+          std::cout << "Database " << query.databaseName << " created."
+                    << std::endl;
+          break;
+
+        case QueryType::USE_DATABASE:
+          db.useDatabase(query.databaseName);
+          std::cout << "Database changed to " << query.databaseName
+                    << std::endl;
+          break;
+
         case QueryType::CREATE_TABLE:
           db.createTable(query.tableName, query.columns);
           std::cout << "Table " << query.tableName << " created." << std::endl;
@@ -50,37 +78,81 @@ void executeFromFile(const std::string &filename, Database &db) {
           break;
 
         case QueryType::SELECT: {
-          auto results = db.select(query.tableName, query.selectColumns);
-          for (const auto &row : results) {
-            for (const auto &value : row) {
-              std::visit([](const auto &v) { std::cout << v << "\t"; }, value);
+          std::vector<std::string> columnNames;
+          if (query.selectColumns.empty()) {
+            // 如果是 SELECT *，获取所有列名
+            const Table *table = db.getTable(query.tableName);
+            for (const auto &col : table->getColumns()) {
+              columnNames.push_back(col.name);
             }
-            std::cout << std::endl;
+          } else {
+            // 处理指定的列名
+            for (const auto &colRef : query.selectColumns) {
+              if (!colRef.table.empty()) {
+                columnNames.push_back(colRef.table + "." + colRef.column);
+              } else {
+                columnNames.push_back(colRef.column);
+              }
+            }
+          }
+
+          auto results = db.select(query.tableName, columnNames,
+                                   query.whereConditions, query.joins);
+
+          // Write column headers to CSV
+          for (size_t i = 0; i < columnNames.size(); ++i) {
+            outFile << columnNames[i];
+            if (i < columnNames.size() - 1) {
+              outFile << ",";
+            }
+          }
+          outFile << "\n";
+
+          // Write data rows to CSV
+          for (const auto &row : results) {
+            for (size_t i = 0; i < row.size(); ++i) {
+              std::visit([&outFile](const auto &v) { outFile << v; }, row[i]);
+              if (i < row.size() - 1) {
+                outFile << ",";
+              }
+            }
+            outFile << "\n";
           }
         } break;
 
-        case QueryType::CREATE_INDEX:
-          db.createIndex(query.tableName, query.indexColumn);
-          std::cout << "Index created on " << query.tableName << "("
-                    << query.indexColumn << ")" << std::endl;
-          break;
+        case QueryType::UPDATE: {
+          // TODO: 实现 UPDATE 操作
+          std::cout << "Row(s) updated in " << query.tableName << std::endl;
+        } break;
+
+        case QueryType::DELETE: {
+          // TODO: 实现 DELETE 操作
+          std::cout << "Row(s) deleted from " << query.tableName << std::endl;
+        } break;
+        }
+      } catch (const utils::SQLError &e) {
+        std::cerr << "Error at line " << e.getLine() << ", column "
+                  << e.getColumn() << ": " << e.what() << std::endl;
+
+        // Build the query string for error reporting
+        std::string queryStr;
+        for (const auto &t : currentTokens) {
+          queryStr += t.value + " ";
+        }
+        std::cerr << "In query: " << queryStr << std::endl;
+
+        if (e.getColumn() > 0) {
+          std::cerr << std::string(e.getColumn() - 1, ' ') << "^" << std::endl;
         }
       } catch (const std::exception &e) {
         std::cerr << "Error: " << e.what() << std::endl;
       }
 
-      currentQuery.clear();
+      // Clear tokens after execution
+      currentTokens.clear();
     }
   }
-}
 
-int main(int argc, char *argv[]) {
-  if (argc != 2) {
-    std::cerr << "Usage: " << argv[0] << " <sql_file>" << std::endl;
-    return 1;
-  }
-
-  Database db;
-  executeFromFile(argv[1], db);
+  outFile.close();
   return 0;
 }

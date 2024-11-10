@@ -171,24 +171,24 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named minisql
+# Target rules for targets named minidb
 
 # Build rule for target.
-minisql: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 minisql
-.PHONY : minisql
+minidb: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 minidb
+.PHONY : minidb
 
 # fast build rule for target.
-minisql/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\minisql.dir\build.make CMakeFiles/minisql.dir/build
-.PHONY : minisql/fast
+minidb/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\minidb.dir\build.make CMakeFiles/minidb.dir/build
+.PHONY : minidb/fast
 
 src/database.obj: src/database.cpp.obj
 .PHONY : src/database.obj
 
 # target to build an object file
 src/database.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\minisql.dir\build.make CMakeFiles/minisql.dir/src/database.cpp.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\minidb.dir\build.make CMakeFiles/minidb.dir/src/database.cpp.obj
 .PHONY : src/database.cpp.obj
 
 src/database.i: src/database.cpp.i
@@ -196,7 +196,7 @@ src/database.i: src/database.cpp.i
 
 # target to preprocess a source file
 src/database.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\minisql.dir\build.make CMakeFiles/minisql.dir/src/database.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\minidb.dir\build.make CMakeFiles/minidb.dir/src/database.cpp.i
 .PHONY : src/database.cpp.i
 
 src/database.s: src/database.cpp.s
@@ -204,7 +204,7 @@ src/database.s: src/database.cpp.s
 
 # target to generate assembly for a file
 src/database.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\minisql.dir\build.make CMakeFiles/minisql.dir/src/database.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\minidb.dir\build.make CMakeFiles/minidb.dir/src/database.cpp.s
 .PHONY : src/database.cpp.s
 
 src/lexer.obj: src/lexer.cpp.obj
@@ -212,7 +212,7 @@ src/lexer.obj: src/lexer.cpp.obj
 
 # target to build an object file
 src/lexer.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\minisql.dir\build.make CMakeFiles/minisql.dir/src/lexer.cpp.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\minidb.dir\build.make CMakeFiles/minidb.dir/src/lexer.cpp.obj
 .PHONY : src/lexer.cpp.obj
 
 src/lexer.i: src/lexer.cpp.i
@@ -220,7 +220,7 @@ src/lexer.i: src/lexer.cpp.i
 
 # target to preprocess a source file
 src/lexer.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\minisql.dir\build.make CMakeFiles/minisql.dir/src/lexer.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\minidb.dir\build.make CMakeFiles/minidb.dir/src/lexer.cpp.i
 .PHONY : src/lexer.cpp.i
 
 src/lexer.s: src/lexer.cpp.s
@@ -228,7 +228,7 @@ src/lexer.s: src/lexer.cpp.s
 
 # target to generate assembly for a file
 src/lexer.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\minisql.dir\build.make CMakeFiles/minisql.dir/src/lexer.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\minidb.dir\build.make CMakeFiles/minidb.dir/src/lexer.cpp.s
 .PHONY : src/lexer.cpp.s
 
 src/main.obj: src/main.cpp.obj
@@ -236,7 +236,7 @@ src/main.obj: src/main.cpp.obj
 
 # target to build an object file
 src/main.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\minisql.dir\build.make CMakeFiles/minisql.dir/src/main.cpp.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\minidb.dir\build.make CMakeFiles/minidb.dir/src/main.cpp.obj
 .PHONY : src/main.cpp.obj
 
 src/main.i: src/main.cpp.i
@@ -244,7 +244,7 @@ src/main.i: src/main.cpp.i
 
 # target to preprocess a source file
 src/main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\minisql.dir\build.make CMakeFiles/minisql.dir/src/main.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\minidb.dir\build.make CMakeFiles/minidb.dir/src/main.cpp.i
 .PHONY : src/main.cpp.i
 
 src/main.s: src/main.cpp.s
@@ -252,7 +252,7 @@ src/main.s: src/main.cpp.s
 
 # target to generate assembly for a file
 src/main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\minisql.dir\build.make CMakeFiles/minisql.dir/src/main.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\minidb.dir\build.make CMakeFiles/minidb.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
 src/parser.obj: src/parser.cpp.obj
@@ -260,7 +260,7 @@ src/parser.obj: src/parser.cpp.obj
 
 # target to build an object file
 src/parser.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\minisql.dir\build.make CMakeFiles/minisql.dir/src/parser.cpp.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\minidb.dir\build.make CMakeFiles/minidb.dir/src/parser.cpp.obj
 .PHONY : src/parser.cpp.obj
 
 src/parser.i: src/parser.cpp.i
@@ -268,7 +268,7 @@ src/parser.i: src/parser.cpp.i
 
 # target to preprocess a source file
 src/parser.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\minisql.dir\build.make CMakeFiles/minisql.dir/src/parser.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\minidb.dir\build.make CMakeFiles/minidb.dir/src/parser.cpp.i
 .PHONY : src/parser.cpp.i
 
 src/parser.s: src/parser.cpp.s
@@ -276,7 +276,7 @@ src/parser.s: src/parser.cpp.s
 
 # target to generate assembly for a file
 src/parser.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\minisql.dir\build.make CMakeFiles/minisql.dir/src/parser.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\minidb.dir\build.make CMakeFiles/minidb.dir/src/parser.cpp.s
 .PHONY : src/parser.cpp.s
 
 src/table.obj: src/table.cpp.obj
@@ -284,7 +284,7 @@ src/table.obj: src/table.cpp.obj
 
 # target to build an object file
 src/table.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\minisql.dir\build.make CMakeFiles/minisql.dir/src/table.cpp.obj
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\minidb.dir\build.make CMakeFiles/minidb.dir/src/table.cpp.obj
 .PHONY : src/table.cpp.obj
 
 src/table.i: src/table.cpp.i
@@ -292,7 +292,7 @@ src/table.i: src/table.cpp.i
 
 # target to preprocess a source file
 src/table.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\minisql.dir\build.make CMakeFiles/minisql.dir/src/table.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\minidb.dir\build.make CMakeFiles/minidb.dir/src/table.cpp.i
 .PHONY : src/table.cpp.i
 
 src/table.s: src/table.cpp.s
@@ -300,32 +300,8 @@ src/table.s: src/table.cpp.s
 
 # target to generate assembly for a file
 src/table.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\minisql.dir\build.make CMakeFiles/minisql.dir/src/table.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\minidb.dir\build.make CMakeFiles/minidb.dir/src/table.cpp.s
 .PHONY : src/table.cpp.s
-
-src/utils.obj: src/utils.cpp.obj
-.PHONY : src/utils.obj
-
-# target to build an object file
-src/utils.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\minisql.dir\build.make CMakeFiles/minisql.dir/src/utils.cpp.obj
-.PHONY : src/utils.cpp.obj
-
-src/utils.i: src/utils.cpp.i
-.PHONY : src/utils.i
-
-# target to preprocess a source file
-src/utils.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\minisql.dir\build.make CMakeFiles/minisql.dir/src/utils.cpp.i
-.PHONY : src/utils.cpp.i
-
-src/utils.s: src/utils.cpp.s
-.PHONY : src/utils.s
-
-# target to generate assembly for a file
-src/utils.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\minisql.dir\build.make CMakeFiles/minisql.dir/src/utils.cpp.s
-.PHONY : src/utils.cpp.s
 
 # Help Target
 help:
@@ -340,7 +316,7 @@ help:
 	@echo ... list_install_components
 	@echo ... rebuild_cache
 	@echo ... test
-	@echo ... minisql
+	@echo ... minidb
 	@echo ... src/database.obj
 	@echo ... src/database.i
 	@echo ... src/database.s
@@ -356,9 +332,6 @@ help:
 	@echo ... src/table.obj
 	@echo ... src/table.i
 	@echo ... src/table.s
-	@echo ... src/utils.obj
-	@echo ... src/utils.i
-	@echo ... src/utils.s
 .PHONY : help
 
 

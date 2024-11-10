@@ -160,7 +160,21 @@ CMakeFiles/minisql.dir/src/main.cpp.obj: \
  C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/bits/unordered_map.h \
  C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/bits/hashtable.h \
  C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/bits/hashtable_policy.h \
+ D:\OneDrive\ -\ HKUST\ (Guangzhou)\Classes\UFUG2601\ C++\ Programming\Project\ -\ miniSQL\src\lexer.hpp \
+ C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/queue \
+ C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/deque \
+ C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/bits/stl_deque.h \
+ C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/bits/deque.tcc \
+ C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/bits/stl_heap.h \
+ C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/bits/stl_queue.h \
  D:\OneDrive\ -\ HKUST\ (Guangzhou)\Classes\UFUG2601\ C++\ Programming\Project\ -\ miniSQL\src\parser.hpp \
+ D:\OneDrive\ -\ HKUST\ (Guangzhou)\Classes\UFUG2601\ C++\ Programming\Project\ -\ miniSQL\src\utils.hpp \
+ C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/algorithm \
+ C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/bits/stl_algo.h \
+ C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/bits/algorithmfwd.h \
+ C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/bits/uniform_int_dist.h \
+ C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/pstl/glue_algorithm_defs.h \
+ C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/stdexcept \
  C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/fstream \
  C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/istream \
  C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/ios \
@@ -169,7 +183,6 @@ CMakeFiles/minisql.dir/src/main.cpp.obj: \
  C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/bits/locale_classes.tcc \
  C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/system_error \
  C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/x86_64-w64-mingw32/bits/error_constants.h \
- C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/stdexcept \
  C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/streambuf \
  C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/bits/streambuf.tcc \
  C:/Program\ Files\ (x86)/cpeditor/mingw64/include/c++/13.2.0/bits/basic_ios.h \

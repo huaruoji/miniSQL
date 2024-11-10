@@ -6,174 +6,150 @@ A course project for UFUG2601 C++ Programming at HKUST(GZ), implementing a simpl
 
 This project is developed in accordance with the HKUST(GZ) Academic Honor Code. All work is original and completed independently.
 
-## Overview
+## Supported Operations
 
-MiniDB is a lightweight database management system that implements core SQL functionality in a simplified manner. It supports basic database operations including:
-- Database creation and selection
-- Table management
-- Data manipulation
-- Basic and complex queries
-- Data persistence
-
-## Features
-
-### Database Operations
-- Create new databases
-- Switch between databases
-- Automatic data persistence
-
-### Table Operations
-- Create tables with multiple data types (INTEGER, FLOAT, TEXT)
-- Drop existing tables
-- Insert records
-- Update records
-- Delete records
-
-### Query Capabilities
-- Basic SELECT queries
-- WHERE clause filtering
-- INNER JOIN operations
-- Multiple condition support (AND/OR)
-- Column selection
-- Full table selection
-
-### Data Types Support
-- INTEGER
-- FLOAT
-- TEXT
-
-## Installation
-
-### Prerequisites
-- C++ compiler with C++17 support
-- CMake (version 3.15 or higher)
-
-### Build Instructions
-```bash
-cmake .
-make
-```
-
-## Usage
-
-### Command Line Interface
-
-The program accepts two command-line arguments:
-```bash
-./minidb input.sql output.txt
-```
-
-### Supported SQL Commands
-
-#### Database Management
+### 1. Database Management
+#### Create Database
 ```sql
 CREATE DATABASE database_name;
+```
+- Creates a new database
+- All table content should be stored to disk before program exit
+
+#### Use Database
+```sql
 USE DATABASE database_name;
 ```
+- Switches to specified database for subsequent operations
+- Must be executed before any table operations
+- Should load previous database content when used
 
-#### Table Operations
+### 2. Table Operations
+#### Create Table
 ```sql
 CREATE TABLE table_name (
     column1_name column1_type,
     column2_name column2_type,
     ...
 );
+```
+Supported data types:
+- INTEGER
+- FLOAT
+- TEXT
 
+#### Drop Table
+```sql
 DROP TABLE table_name;
 ```
+- Permanently removes the specified table and all its data
 
-#### Data Manipulation
+### 3. Data Operations
+#### Insert Data
 ```sql
 INSERT INTO table_name VALUES (value1, value2, ...);
-UPDATE table_name SET column1 = value1 WHERE condition;
-DELETE FROM table_name WHERE condition;
 ```
+- Values must match the column types defined in table creation
+- Text values should be enclosed in single quotes
 
-#### Queries
+#### Update Data
 ```sql
-SELECT column1, column2 FROM table_name;
-SELECT * FROM table_name WHERE condition1 AND condition2;
-SELECT table1.column1, table2.column1 
-FROM table1 
-INNER JOIN table2 
-ON table1.column = table2.column;
+UPDATE table_name
+SET column1 = new_value1, column2 = new_value2, column3 = new_value3
+WHERE condition;
 ```
+- Multiple column updates are separated by commas in the SET clause
+- WHERE clause is optional
+- Without WHERE, all rows will be updated
+- Can perform arithmetic operations in SET clause (e.g., `SET GPA = GPA + 0.1`)
+- Example:
+  ```sql
+  UPDATE student
+  SET GPA = 3.6, Major = 'Data Science'
+  WHERE Name = 'Jay Chou';
+  ```
 
-### Output Format
+#### Delete Data
+```sql
+DELETE FROM table_name
+WHERE condition;
+```
+- WHERE clause is optional
+- Without WHERE, all rows will be deleted
+- Example:
+  ```sql
+  DELETE FROM student
+  WHERE GPA < 3.0;
+  ```
 
-Query results are formatted in CSV format:
-- Fields are comma-separated
-- Text fields are enclosed in double quotes
-- Numeric fields are printed directly
-- Float values are formatted to two decimal places
-- Multiple query results are separated by "---"
+### 4. Query Operations
+#### Basic Select
+```sql
+SELECT column1, column2, ... FROM table_name;
+```
+Special cases:
+- `SELECT * FROM table_name;` selects all columns
+- Any order of rows is acceptable in results
+
+#### Select with WHERE Clause
+```sql
+SELECT column1, column2 FROM table_name WHERE condition1 AND/OR condition2;
+```
+Supported conditions:
+- Comparisons: `>`, `<`, `=`
+- Logical operators: `AND`, `OR`
+
+#### Inner Join
+```sql
+SELECT table1.column1, table2.column1
+FROM table1
+INNER JOIN table2
+ON table1.column_x = table2.column_y;
+```
+- Joins two tables based on matching column values
+- Must use fully qualified column names (table_name.column_name)
+
+## Output Format Requirements
+
+### CSV Format Rules
+1. Fields are separated by commas
+2. First row contains column names
+3. Text fields:
+   - Enclosed in double quotes (`""`)
+   - No text fields will contain double quotes
+4. Numeric fields:
+   - Integers: printed as-is
+   - Floats: exactly two decimal places, rounded if necessary
+
+### Multiple Query Results
+- Results from different queries are separated by `---`
+- Each result starts with a header row
 
 Example output:
-```csv
+```
 ID,Name,GPA
 1000,"Jay Chou",3.00
 1001,"Taylor Swift",3.20
-1002,"Bob Dylan",3.50
+---
+ID,Name,GPA
+1001,"Taylor Swift",3.20
 ```
 
-### Error Handling
+## Error Handling
+- Program should check miniSQL syntax
+- Report line number where errors occur
+- Handle database loading errors appropriately
 
-The system provides:
-- Syntax error detection
-- Line number reporting for errors
-- Input validation
-- Proper error messages
+## 实现思路
 
-## Examples
-
-### Basic Database Operations
-```sql
-CREATE DATABASE db_university;
-USE DATABASE db_university;
-
-CREATE TABLE student (
-    ID INTEGER,
-    Name TEXT,
-    GPA FLOAT
-);
-
-INSERT INTO student VALUES (1000, 'Jay Chou', 3.0);
-SELECT ID, Name, GPA FROM student WHERE GPA > 3.0;
-```
-
-### Complex Queries
-```sql
-SELECT student.Name, course_enrollment.Course
-FROM student
-INNER JOIN course_enrollment 
-ON student.StudentID = course_enrollment.StudentID
-WHERE student.GPA > 3.0;
-```
-
-### Comments Support
-
-```sql
--- This is a comment
-```
-
-## Limitations
-
-- Supports only basic SQL operations
-- Limited to INTEGER, FLOAT, and TEXT data types
-- Simple WHERE clause conditions
-- Basic INNER JOIN support only
-
-## Structure
-
-- `src/`: Source code
-- `include/`: Header files
-- `test/`: Test cases
-- `CMakeLists.txt`: CMake configuration
-- `CMakePresets.json`: CMake presets
-
-## 底层实现
-
-使用 `std::multiset` 实现索引。
+- 使用 lexer 分析词法
+  - 处理注释、空格。
+  - 在遇到分号时视为完整的查询语句。
+  - 遇到其他字符则报错。
+- 使用 parser 分析语法。
+  - 提供报错支持。
+- 使用 database 管理数据库
+  - 使用 `unordered_map<std::string, std::unique_ptr<Table>>` 管理表。`unique_ptr` 可以自动管理表的生命周期。
 
 ```
 minisql/
@@ -189,7 +165,7 @@ minisql/
 │   ├── database.cpp
 │   ├── table.hpp
 │   ├── table.cpp
-│   └── utils.hpp
+│   ├── utils.hpp
 └── test/
     └── test.sql
 ```

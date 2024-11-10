@@ -1,28 +1,53 @@
 #pragma once
-#include "table.hpp"
+#include "lexer.hpp"
+#include "utils.hpp"
 #include <string>
 #include <vector>
 
-
-enum class QueryType { CREATE_TABLE, DROP_TABLE, INSERT, SELECT, CREATE_INDEX };
+enum class QueryType {
+  CREATE_DATABASE,
+  USE_DATABASE,
+  CREATE_TABLE,
+  DROP_TABLE,
+  INSERT,
+  SELECT,
+  UPDATE,
+  DELETE
+};
 
 struct Query {
   QueryType type;
+  std::string databaseName;
   std::string tableName;
-  std::vector<Column> columns;            // 用于CREATE TABLE
-  std::vector<std::string> selectColumns; // 用于SELECT
-  std::vector<Value> values;              // 用于INSERT
-  std::string indexColumn;                // 用于CREATE INDEX
+  std::vector<utils::Column> columns;
+  std::vector<utils::ColumnRef> selectColumns;
+  std::vector<utils::Value> values;
+  std::vector<utils::Condition> whereConditions;
+  std::vector<utils::JoinClause> joins;
+  std::vector<std::pair<std::string, utils::Value>> updateAssignments;
 };
 
 class Parser {
 public:
-  Query parse(const std::string &sql);
+  Query parse(const std::vector<Token> &tokens);
 
 private:
-  Query parseCreateTable(const std::string &sql);
-  Query parseDropTable(const std::string &sql);
-  Query parseInsert(const std::string &sql);
-  Query parseSelect(const std::string &sql);
-  Query parseCreateIndex(const std::string &sql);
+  const Token *current_token;
+  std::vector<Token> tokens;
+  size_t token_index;
+
+  void advance();
+  void throwError(const std::string &message);
+
+  Query parseCreateDatabase();
+  Query parseUseDatabase();
+  Query parseCreateTable();
+  Query parseDropTable();
+  Query parseInsert();
+  Query parseSelect();
+  Query parseUpdate();
+  Query parseDelete();
+  std::vector<utils::Condition> parseWhereClause();
+  std::vector<utils::JoinClause> parseJoinClauses();
+  utils::ColumnRef parseColumnRef();
 };
