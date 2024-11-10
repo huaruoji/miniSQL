@@ -69,7 +69,6 @@ include CMakeFiles/minidb.dir/progress.make
 include CMakeFiles/minidb.dir/flags.make
 
 CMakeFiles/minidb.dir/src/main.cpp.obj: CMakeFiles/minidb.dir/flags.make
-CMakeFiles/minidb.dir/src/main.cpp.obj: CMakeFiles/minidb.dir/includes_CXX.rsp
 CMakeFiles/minidb.dir/src/main.cpp.obj: D:/OneDrive\ -\ HKUST\ (Guangzhou)/Classes/UFUG2601\ C++\ Programming/Project\ -\ miniSQL/src/main.cpp
 CMakeFiles/minidb.dir/src/main.cpp.obj: CMakeFiles/minidb.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="D:\OneDrive - HKUST (Guangzhou)\Classes\UFUG2601 C++ Programming\Project - miniSQL\out\build\GCC\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/minidb.dir/src/main.cpp.obj"
@@ -83,23 +82,21 @@ CMakeFiles/minidb.dir/src/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/minidb.dir/src/main.cpp.s"
 	C:\PROGRA~2\cpeditor\mingw64\bin\G__~1.EXE $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "D:\OneDrive - HKUST (Guangzhou)\Classes\UFUG2601 C++ Programming\Project - miniSQL\src\main.cpp" -o CMakeFiles\minidb.dir\src\main.cpp.s
 
-CMakeFiles/minidb.dir/src/database.cpp.obj: CMakeFiles/minidb.dir/flags.make
-CMakeFiles/minidb.dir/src/database.cpp.obj: CMakeFiles/minidb.dir/includes_CXX.rsp
-CMakeFiles/minidb.dir/src/database.cpp.obj: D:/OneDrive\ -\ HKUST\ (Guangzhou)/Classes/UFUG2601\ C++\ Programming/Project\ -\ miniSQL/src/database.cpp
-CMakeFiles/minidb.dir/src/database.cpp.obj: CMakeFiles/minidb.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="D:\OneDrive - HKUST (Guangzhou)\Classes\UFUG2601 C++ Programming\Project - miniSQL\out\build\GCC\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/minidb.dir/src/database.cpp.obj"
-	C:\PROGRA~2\cpeditor\mingw64\bin\G__~1.EXE $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/minidb.dir/src/database.cpp.obj -MF CMakeFiles\minidb.dir\src\database.cpp.obj.d -o CMakeFiles\minidb.dir\src\database.cpp.obj -c "D:\OneDrive - HKUST (Guangzhou)\Classes\UFUG2601 C++ Programming\Project - miniSQL\src\database.cpp"
+CMakeFiles/minidb.dir/src/lexer.cpp.obj: CMakeFiles/minidb.dir/flags.make
+CMakeFiles/minidb.dir/src/lexer.cpp.obj: D:/OneDrive\ -\ HKUST\ (Guangzhou)/Classes/UFUG2601\ C++\ Programming/Project\ -\ miniSQL/src/lexer.cpp
+CMakeFiles/minidb.dir/src/lexer.cpp.obj: CMakeFiles/minidb.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="D:\OneDrive - HKUST (Guangzhou)\Classes\UFUG2601 C++ Programming\Project - miniSQL\out\build\GCC\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/minidb.dir/src/lexer.cpp.obj"
+	C:\PROGRA~2\cpeditor\mingw64\bin\G__~1.EXE $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/minidb.dir/src/lexer.cpp.obj -MF CMakeFiles\minidb.dir\src\lexer.cpp.obj.d -o CMakeFiles\minidb.dir\src\lexer.cpp.obj -c "D:\OneDrive - HKUST (Guangzhou)\Classes\UFUG2601 C++ Programming\Project - miniSQL\src\lexer.cpp"
 
-CMakeFiles/minidb.dir/src/database.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/minidb.dir/src/database.cpp.i"
-	C:\PROGRA~2\cpeditor\mingw64\bin\G__~1.EXE $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "D:\OneDrive - HKUST (Guangzhou)\Classes\UFUG2601 C++ Programming\Project - miniSQL\src\database.cpp" > CMakeFiles\minidb.dir\src\database.cpp.i
+CMakeFiles/minidb.dir/src/lexer.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/minidb.dir/src/lexer.cpp.i"
+	C:\PROGRA~2\cpeditor\mingw64\bin\G__~1.EXE $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "D:\OneDrive - HKUST (Guangzhou)\Classes\UFUG2601 C++ Programming\Project - miniSQL\src\lexer.cpp" > CMakeFiles\minidb.dir\src\lexer.cpp.i
 
-CMakeFiles/minidb.dir/src/database.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/minidb.dir/src/database.cpp.s"
-	C:\PROGRA~2\cpeditor\mingw64\bin\G__~1.EXE $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "D:\OneDrive - HKUST (Guangzhou)\Classes\UFUG2601 C++ Programming\Project - miniSQL\src\database.cpp" -o CMakeFiles\minidb.dir\src\database.cpp.s
+CMakeFiles/minidb.dir/src/lexer.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/minidb.dir/src/lexer.cpp.s"
+	C:\PROGRA~2\cpeditor\mingw64\bin\G__~1.EXE $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "D:\OneDrive - HKUST (Guangzhou)\Classes\UFUG2601 C++ Programming\Project - miniSQL\src\lexer.cpp" -o CMakeFiles\minidb.dir\src\lexer.cpp.s
 
 CMakeFiles/minidb.dir/src/parser.cpp.obj: CMakeFiles/minidb.dir/flags.make
-CMakeFiles/minidb.dir/src/parser.cpp.obj: CMakeFiles/minidb.dir/includes_CXX.rsp
 CMakeFiles/minidb.dir/src/parser.cpp.obj: D:/OneDrive\ -\ HKUST\ (Guangzhou)/Classes/UFUG2601\ C++\ Programming/Project\ -\ miniSQL/src/parser.cpp
 CMakeFiles/minidb.dir/src/parser.cpp.obj: CMakeFiles/minidb.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="D:\OneDrive - HKUST (Guangzhou)\Classes\UFUG2601 C++ Programming\Project - miniSQL\out\build\GCC\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/minidb.dir/src/parser.cpp.obj"
@@ -113,23 +110,21 @@ CMakeFiles/minidb.dir/src/parser.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/minidb.dir/src/parser.cpp.s"
 	C:\PROGRA~2\cpeditor\mingw64\bin\G__~1.EXE $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "D:\OneDrive - HKUST (Guangzhou)\Classes\UFUG2601 C++ Programming\Project - miniSQL\src\parser.cpp" -o CMakeFiles\minidb.dir\src\parser.cpp.s
 
-CMakeFiles/minidb.dir/src/lexer.cpp.obj: CMakeFiles/minidb.dir/flags.make
-CMakeFiles/minidb.dir/src/lexer.cpp.obj: CMakeFiles/minidb.dir/includes_CXX.rsp
-CMakeFiles/minidb.dir/src/lexer.cpp.obj: D:/OneDrive\ -\ HKUST\ (Guangzhou)/Classes/UFUG2601\ C++\ Programming/Project\ -\ miniSQL/src/lexer.cpp
-CMakeFiles/minidb.dir/src/lexer.cpp.obj: CMakeFiles/minidb.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="D:\OneDrive - HKUST (Guangzhou)\Classes\UFUG2601 C++ Programming\Project - miniSQL\out\build\GCC\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/minidb.dir/src/lexer.cpp.obj"
-	C:\PROGRA~2\cpeditor\mingw64\bin\G__~1.EXE $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/minidb.dir/src/lexer.cpp.obj -MF CMakeFiles\minidb.dir\src\lexer.cpp.obj.d -o CMakeFiles\minidb.dir\src\lexer.cpp.obj -c "D:\OneDrive - HKUST (Guangzhou)\Classes\UFUG2601 C++ Programming\Project - miniSQL\src\lexer.cpp"
+CMakeFiles/minidb.dir/src/database.cpp.obj: CMakeFiles/minidb.dir/flags.make
+CMakeFiles/minidb.dir/src/database.cpp.obj: D:/OneDrive\ -\ HKUST\ (Guangzhou)/Classes/UFUG2601\ C++\ Programming/Project\ -\ miniSQL/src/database.cpp
+CMakeFiles/minidb.dir/src/database.cpp.obj: CMakeFiles/minidb.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="D:\OneDrive - HKUST (Guangzhou)\Classes\UFUG2601 C++ Programming\Project - miniSQL\out\build\GCC\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/minidb.dir/src/database.cpp.obj"
+	C:\PROGRA~2\cpeditor\mingw64\bin\G__~1.EXE $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/minidb.dir/src/database.cpp.obj -MF CMakeFiles\minidb.dir\src\database.cpp.obj.d -o CMakeFiles\minidb.dir\src\database.cpp.obj -c "D:\OneDrive - HKUST (Guangzhou)\Classes\UFUG2601 C++ Programming\Project - miniSQL\src\database.cpp"
 
-CMakeFiles/minidb.dir/src/lexer.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/minidb.dir/src/lexer.cpp.i"
-	C:\PROGRA~2\cpeditor\mingw64\bin\G__~1.EXE $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "D:\OneDrive - HKUST (Guangzhou)\Classes\UFUG2601 C++ Programming\Project - miniSQL\src\lexer.cpp" > CMakeFiles\minidb.dir\src\lexer.cpp.i
+CMakeFiles/minidb.dir/src/database.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/minidb.dir/src/database.cpp.i"
+	C:\PROGRA~2\cpeditor\mingw64\bin\G__~1.EXE $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "D:\OneDrive - HKUST (Guangzhou)\Classes\UFUG2601 C++ Programming\Project - miniSQL\src\database.cpp" > CMakeFiles\minidb.dir\src\database.cpp.i
 
-CMakeFiles/minidb.dir/src/lexer.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/minidb.dir/src/lexer.cpp.s"
-	C:\PROGRA~2\cpeditor\mingw64\bin\G__~1.EXE $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "D:\OneDrive - HKUST (Guangzhou)\Classes\UFUG2601 C++ Programming\Project - miniSQL\src\lexer.cpp" -o CMakeFiles\minidb.dir\src\lexer.cpp.s
+CMakeFiles/minidb.dir/src/database.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/minidb.dir/src/database.cpp.s"
+	C:\PROGRA~2\cpeditor\mingw64\bin\G__~1.EXE $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "D:\OneDrive - HKUST (Guangzhou)\Classes\UFUG2601 C++ Programming\Project - miniSQL\src\database.cpp" -o CMakeFiles\minidb.dir\src\database.cpp.s
 
 CMakeFiles/minidb.dir/src/table.cpp.obj: CMakeFiles/minidb.dir/flags.make
-CMakeFiles/minidb.dir/src/table.cpp.obj: CMakeFiles/minidb.dir/includes_CXX.rsp
 CMakeFiles/minidb.dir/src/table.cpp.obj: D:/OneDrive\ -\ HKUST\ (Guangzhou)/Classes/UFUG2601\ C++\ Programming/Project\ -\ miniSQL/src/table.cpp
 CMakeFiles/minidb.dir/src/table.cpp.obj: CMakeFiles/minidb.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="D:\OneDrive - HKUST (Guangzhou)\Classes\UFUG2601 C++ Programming\Project - miniSQL\out\build\GCC\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/minidb.dir/src/table.cpp.obj"
@@ -146,18 +141,18 @@ CMakeFiles/minidb.dir/src/table.cpp.s: cmake_force
 # Object files for target minidb
 minidb_OBJECTS = \
 "CMakeFiles/minidb.dir/src/main.cpp.obj" \
-"CMakeFiles/minidb.dir/src/database.cpp.obj" \
-"CMakeFiles/minidb.dir/src/parser.cpp.obj" \
 "CMakeFiles/minidb.dir/src/lexer.cpp.obj" \
+"CMakeFiles/minidb.dir/src/parser.cpp.obj" \
+"CMakeFiles/minidb.dir/src/database.cpp.obj" \
 "CMakeFiles/minidb.dir/src/table.cpp.obj"
 
 # External object files for target minidb
 minidb_EXTERNAL_OBJECTS =
 
 minidb.exe: CMakeFiles/minidb.dir/src/main.cpp.obj
-minidb.exe: CMakeFiles/minidb.dir/src/database.cpp.obj
-minidb.exe: CMakeFiles/minidb.dir/src/parser.cpp.obj
 minidb.exe: CMakeFiles/minidb.dir/src/lexer.cpp.obj
+minidb.exe: CMakeFiles/minidb.dir/src/parser.cpp.obj
+minidb.exe: CMakeFiles/minidb.dir/src/database.cpp.obj
 minidb.exe: CMakeFiles/minidb.dir/src/table.cpp.obj
 minidb.exe: CMakeFiles/minidb.dir/build.make
 minidb.exe: CMakeFiles/minidb.dir/linkLibs.rsp

@@ -1,8 +1,11 @@
 #pragma once
 #include "lexer.hpp"
 #include "utils.hpp"
+#include <memory>
 #include <string>
 #include <vector>
+
+class Database;
 
 enum class QueryType {
   CREATE_DATABASE,
@@ -25,15 +28,19 @@ struct Query {
   std::vector<utils::Condition> whereConditions;
   std::vector<utils::JoinClause> joins;
   std::vector<std::pair<std::string, utils::Value>> updateAssignments;
+
+  Query() : type(QueryType::SELECT) {}
 };
 
 class Parser {
 public:
-  Query parse(const std::vector<Token> &tokens);
+  explicit Parser(const std::string &input);
+  void parseStatement(Database &db);
 
 private:
-  const Token *current_token;
-  std::vector<Token> tokens;
+  Lexer lexer_;
+  const utils::Token *current_token;
+  std::vector<utils::Token> tokens;
   size_t token_index;
 
   void advance();
@@ -47,6 +54,7 @@ private:
   Query parseSelect();
   Query parseUpdate();
   Query parseDelete();
+
   std::vector<utils::Condition> parseWhereClause();
   std::vector<utils::JoinClause> parseJoinClauses();
   utils::ColumnRef parseColumnRef();

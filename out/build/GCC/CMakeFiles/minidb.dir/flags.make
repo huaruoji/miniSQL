@@ -4,7 +4,7 @@
 # compile CXX with C:/Program Files (x86)/cpeditor/mingw64/bin/g++.exe
 CXX_DEFINES = 
 
-CXX_INCLUDES = @CMakeFiles/minidb.dir/includes_CXX.rsp
+CXX_INCLUDES = 
 
-CXX_FLAGS = -g -std=c++17 -Wall -Wextra -Wpedantic
+CXX_FLAGS = -g -std=gnu++17 -Wall -Wextra -Wpedantic
 

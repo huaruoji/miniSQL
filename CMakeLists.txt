@@ -1,51 +1,33 @@
-cmake_minimum_required(VERSION 3.15)
-project(miniSQL VERSION 0.1.0 LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.10)
+project(MiniSQL)
 
-# 设置C++标准
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 
-# 设置编译选项
-if(MSVC)
-    add_compile_options(/W4)
-else()
-    add_compile_options(-Wall -Wextra -Wpedantic)
-endif()
-
-# 源文件
+# Add source files
 set(SOURCES
     src/main.cpp
-    src/database.cpp
-    src/parser.cpp
     src/lexer.cpp
+    src/parser.cpp
+    src/database.cpp
     src/table.cpp
 )
 
-# 头文件
+# Add header files
 set(HEADERS
-    src/database.hpp
-    src/parser.hpp
-    src/lexer.hpp
-    src/table.hpp
     src/utils.hpp
+    src/lexer.hpp
+    src/parser.hpp
+    src/database.hpp
+    src/table.hpp
 )
 
-# 可执行文件
+# Create executable
 add_executable(minidb ${SOURCES} ${HEADERS})
 
-# 包含目录
-target_include_directories(minidb PRIVATE src)
-
-# 安装规则
-install(TARGETS minidb
-    RUNTIME DESTINATION bin
-)
-
-# 启用测试
-enable_testing()
-
-# 添加测试用例
-add_test(NAME sql_test
-         COMMAND minidb ${CMAKE_SOURCE_DIR}/test/test.sql ${CMAKE_BINARY_DIR}/test_output.csv
-         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}) 
+# Add compiler warnings
+if(MSVC)
+    target_compile_options(minidb PRIVATE /W4)
+else()
+    target_compile_options(minidb PRIVATE -Wall -Wextra -Wpedantic)
+endif()

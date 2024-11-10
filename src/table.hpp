@@ -1,37 +1,36 @@
 #pragma once
 #include "utils.hpp"
+#include <map>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 class Table {
 public:
-  Table(const std::string &name, const std::vector<utils::Column> &columns);
+  Table(std::string name, const std::vector<utils::Column> &columns);
 
-  // 基本操作
+  // Data manipulation
   void insert(const std::vector<utils::Value> &values);
   void
   update(const std::vector<std::pair<std::string, utils::Value>> &assignments,
          const std::vector<utils::Condition> &conditions);
   void deleteRows(const std::vector<utils::Condition> &conditions);
 
-  // 查询操作
+  // Queries
   std::vector<std::vector<utils::Value>>
   select(const std::vector<std::string> &columns,
-         const std::vector<utils::Condition> &conditions = {},
-         const std::vector<utils::JoinClause> &joins = {});
+         const std::vector<utils::Condition> &conditions,
+         const std::vector<utils::JoinClause> &joins);
 
-  // 获取表的元数据
-  const std::vector<utils::Column> &getColumns() const { return columns; }
-  const std::string &getName() const { return tableName; }
+  // Table info
+  const std::vector<utils::Column> &getColumns() const { return columns_; }
+  const std::string &getName() const { return name_; }
 
 private:
-  std::string tableName;
-  std::vector<utils::Column> columns;
-  std::vector<std::vector<utils::Value>> rows;
-  std::unordered_map<std::string, size_t> columnIndexMap;
+  std::string name_;
+  std::vector<utils::Column> columns_;
+  std::vector<std::vector<utils::Value>> rows_;
+  std::map<std::string, size_t> columnIndexMap;
 
-  // 辅助函数
   bool matchesConditions(const std::vector<utils::Value> &row,
                          const std::vector<utils::Condition> &conditions) const;
   bool matchesCondition(const utils::Value &value, utils::ComparisonOp op,

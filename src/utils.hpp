@@ -1,6 +1,8 @@
 #pragma once
 #include <algorithm>
 #include <exception>
+#include <map>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <variant>
@@ -8,16 +10,32 @@
 
 namespace utils {
 
+// Token 相关定义
+enum class TokenType {
+  KEYWORD,
+  IDENTIFIER,
+  NUMBER,
+  STRING,
+  OPERATOR,
+  PUNCTUATION,
+  END_OF_STATEMENT,
+  END_OF_FILE
+};
+
+struct Token {
+  TokenType type;
+  std::string value;
+  size_t line;
+  size_t column;
+
+  Token(TokenType t, std::string v, size_t l = 0, size_t c = 0)
+      : type(t), value(std::move(v)), line(l), column(c) {}
+};
+
 // 字符串处理
 inline std::string toUpper(const std::string &str) {
   std::string result = str;
   std::transform(result.begin(), result.end(), result.begin(), ::toupper);
-  return result;
-}
-
-inline std::string toLower(const std::string &str) {
-  std::string result = str;
-  std::transform(result.begin(), result.end(), result.begin(), ::tolower);
   return result;
 }
 
@@ -36,13 +54,15 @@ public:
 };
 
 // 基本类型定义
-enum class ColumnType { INTEGER, TEXT, FLOAT };
-using Value = std::variant<int, std::string, double>;
+enum class DataType { INTEGER, TEXT, FLOAT };
+using Value = std::variant<int, double, std::string>;
 
 // 列定义
 struct Column {
   std::string name;
-  ColumnType type;
+  DataType type;
+
+  Column(std::string n, DataType t) : name(std::move(n)), type(t) {}
 };
 
 // 比较操作符
@@ -50,8 +70,11 @@ enum class ComparisonOp { EQUALS, GT, GTE, LT, LTE };
 
 // 列引用
 struct ColumnRef {
-  std::string table; // 可能为空
+  std::string table;
   std::string column;
+
+  ColumnRef(std::string t = "", std::string c = "")
+      : table(std::move(t)), column(std::move(c)) {}
 };
 
 // 条件
@@ -59,6 +82,9 @@ struct Condition {
   ColumnRef column;
   ComparisonOp op;
   Value value;
+
+  Condition(ColumnRef c, ComparisonOp o, Value v)
+      : column(std::move(c)), op(o), value(std::move(v)) {}
 };
 
 // 连接子句
@@ -66,6 +92,10 @@ struct JoinClause {
   std::string table;
   ColumnRef leftColumn;
   ColumnRef rightColumn;
+
+  JoinClause(std::string t, ColumnRef left, ColumnRef right)
+      : table(std::move(t)), leftColumn(std::move(left)),
+        rightColumn(std::move(right)) {}
 };
 
 } // namespace utils

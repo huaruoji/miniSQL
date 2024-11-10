@@ -7,6 +7,7 @@ set(CMAKE_DEPENDS_GENERATOR "MinGW Makefiles")
 # The top level Makefile was generated from the following files:
 set(CMAKE_MAKEFILE_DEPENDS
   "CMakeCache.txt"
+  "C:/Program Files (x86)/cpeditor/mingw64/share/cmake-3.28/Modules/CMakeCInformation.cmake"
   "C:/Program Files (x86)/cpeditor/mingw64/share/cmake-3.28/Modules/CMakeCXXInformation.cmake"
   "C:/Program Files (x86)/cpeditor/mingw64/share/cmake-3.28/Modules/CMakeCommonLanguageInclude.cmake"
   "C:/Program Files (x86)/cpeditor/mingw64/share/cmake-3.28/Modules/CMakeGenericSystem.cmake"
@@ -16,8 +17,11 @@ set(CMAKE_MAKEFILE_DEPENDS
   "C:/Program Files (x86)/cpeditor/mingw64/share/cmake-3.28/Modules/CMakeSystemSpecificInformation.cmake"
   "C:/Program Files (x86)/cpeditor/mingw64/share/cmake-3.28/Modules/CMakeSystemSpecificInitialize.cmake"
   "C:/Program Files (x86)/cpeditor/mingw64/share/cmake-3.28/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
+  "C:/Program Files (x86)/cpeditor/mingw64/share/cmake-3.28/Modules/Compiler/GNU-C.cmake"
   "C:/Program Files (x86)/cpeditor/mingw64/share/cmake-3.28/Modules/Compiler/GNU-CXX.cmake"
   "C:/Program Files (x86)/cpeditor/mingw64/share/cmake-3.28/Modules/Compiler/GNU.cmake"
+  "C:/Program Files (x86)/cpeditor/mingw64/share/cmake-3.28/Modules/Platform/Windows-GNU-C-ABI.cmake"
+  "C:/Program Files (x86)/cpeditor/mingw64/share/cmake-3.28/Modules/Platform/Windows-GNU-C.cmake"
   "C:/Program Files (x86)/cpeditor/mingw64/share/cmake-3.28/Modules/Platform/Windows-GNU-CXX-ABI.cmake"
   "C:/Program Files (x86)/cpeditor/mingw64/share/cmake-3.28/Modules/Platform/Windows-GNU-CXX.cmake"
   "C:/Program Files (x86)/cpeditor/mingw64/share/cmake-3.28/Modules/Platform/Windows-GNU.cmake"
@@ -26,6 +30,7 @@ set(CMAKE_MAKEFILE_DEPENDS
   "C:/Program Files (x86)/cpeditor/mingw64/share/cmake-3.28/Modules/Platform/Windows.cmake"
   "C:/Program Files (x86)/cpeditor/mingw64/share/cmake-3.28/Modules/Platform/WindowsPaths.cmake"
   "D:/OneDrive - HKUST (Guangzhou)/Classes/UFUG2601 C++ Programming/Project - miniSQL/CMakeLists.txt"
+  "CMakeFiles/3.28.2/CMakeCCompiler.cmake"
   "CMakeFiles/3.28.2/CMakeCXXCompiler.cmake"
   "CMakeFiles/3.28.2/CMakeRCCompiler.cmake"
   "CMakeFiles/3.28.2/CMakeSystem.cmake"

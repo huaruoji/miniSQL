@@ -61,13 +61,13 @@ Database::select(const std::string &tableName,
 
 void Database::checkDatabaseExists(const std::string &name) const {
   if (databases.find(name) == databases.end()) {
-    throw std::runtime_error("Database does not exist: " + name);
+    throw utils::SQLError("Database does not exist: " + name);
   }
 }
 
 void Database::checkDatabaseSelected() const {
   if (currentDatabase.empty()) {
-    throw std::runtime_error("No database selected");
+    throw utils::SQLError("No database selected");
   }
 }
 
@@ -76,7 +76,7 @@ Table *Database::getTable(const std::string &name) {
   auto &db = databases[currentDatabase];
   auto it = db.find(name);
   if (it == db.end()) {
-    throw std::runtime_error("Table does not exist: " + name);
+    throw utils::SQLError("Table does not exist: " + name);
   }
   return it->second.get();
 }
@@ -86,7 +86,7 @@ const Table *Database::getTable(const std::string &name) const {
   const auto &db = databases.at(currentDatabase);
   auto it = db.find(name);
   if (it == db.end()) {
-    throw std::runtime_error("Table does not exist: " + name);
+    throw utils::SQLError("Table does not exist: " + name);
   }
   return it->second.get();
 }

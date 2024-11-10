@@ -1,138 +1,125 @@
 #include "parser.hpp"
-#include "utils.hpp"
+#include "database.hpp"
 #include <stdexcept>
 
-Query Parser::parse(const std::vector<Token> &tokens) {
-  if (tokens.empty()) {
-    throwError("Empty query");
+Parser::Parser(const std::string &input)
+    : lexer_(input), current_token(nullptr), token_index(0) {
+  // 初始化时获取所有token
+  utils::Token token = lexer_.nextToken();
+  while (token.type != utils::TokenType::END_OF_FILE) {
+    tokens.push_back(token);
+    token = lexer_.nextToken();
+  }
+  tokens.push_back(token); // 添加EOF标记
+
+  if (!tokens.empty()) {
+    current_token = &tokens[0];
+  }
+}
+
+void Parser::parseStatement(Database &db) {
+  if (!current_token) {
+    throwError("No tokens to parse");
   }
 
-  this->tokens = tokens;
-  this->token_index = 0;
-  advance();
-
+  Query query;
   switch (current_token->type) {
-  case TokenType::CREATE: {
-    advance();
-    if (current_token->type == TokenType::TABLE) {
-      return parseCreateTable();
-    } else if (current_token->type == TokenType::DATABASE) {
-      return parseCreateDatabase();
-    } else {
-      throwError("Expected DATABASE or TABLE after CREATE");
+  case utils::TokenType::KEYWORD:
+    if (current_token->value == "CREATE") {
+      advance();
+      if (current_token->value == "DATABASE") {
+        query = parseCreateDatabase();
+      } else if (current_token->value == "TABLE") {
+        query = parseCreateTable();
+      } else {
+        throwError("Expected DATABASE or TABLE after CREATE");
+      }
     }
-  }
-  case TokenType::USE: {
-    advance();
-    if (current_token->type == TokenType::DATABASE) {
-      return parseUseDatabase();
-    } else {
-      throwError("Expected DATABASE after USE");
-    }
-  }
-  case TokenType::DROP: {
-    advance();
-    if (current_token->type == TokenType::TABLE) {
-      return parseDropTable();
-    } else {
-      throwError("Expected TABLE after DROP");
-    }
-  }
-  case TokenType::INSERT:
-    return parseInsert();
-  case TokenType::SELECT:
-    return parseSelect();
-  case TokenType::UPDATE:
-    return parseUpdate();
-  case TokenType::DELETE:
-    return parseDelete();
+    // TODO: 处理其他类型的语句
+    break;
   default:
-    throwError("Unexpected token at start of query: " + current_token->value);
+    throwError("Unexpected token at start of statement");
   }
-  return Query{};
+
+  // TODO: 执行查询
 }
 
 Query Parser::parseCreateDatabase() {
-  // TODO: 实现 CREATE DATABASE 语句的解析
-  // 1. 解析数据库名
-  // 2. 验证语法正确性
+  Query query;
+  query.type = QueryType::CREATE_DATABASE;
+
+  advance(); // 跳过 DATABASE 关键字
+  if (!current_token || current_token->type != utils::TokenType::IDENTIFIER) {
+    throwError("Expected database name");
+  }
+
+  query.databaseName = current_token->value;
+  advance();
+
+  return query;
+}
+
+Query Parser::parseCreateTable() {
+  // TODO: 实现创建表的解析
   return Query{};
 }
 
 Query Parser::parseUseDatabase() {
-  // TODO: 实现 USE DATABASE 语句的解析
-  // 1. 解析数据库名
-  // 2. 验证语法正确性
-  return Query{};
-}
-
-Query Parser::parseCreateTable() {
-  // TODO: 实现 CREATE TABLE 语句的解析
-  // 1. 解析表名
-  // 2. 解析列定义列表
-  // 3. 验证语法正确性
+  // TODO: 实现使用数据库的解析
   return Query{};
 }
 
 Query Parser::parseDropTable() {
-  // TODO: 实现 DROP TABLE 语句的解析
-  // 1. 解析表名
-  // 2. 验证语法正确性
+  // TODO: 实现删除表的解析
   return Query{};
 }
 
 Query Parser::parseInsert() {
-  // TODO: 实现 INSERT 语句的解析
-  // 1. 解析表名
-  // 2. 解析 VALUES 关键字
-  // 3. 解析值列表
-  // 4. 验证语法正确性
+  // TODO: 实现插入的解析
   return Query{};
 }
 
 Query Parser::parseSelect() {
-  // TODO: 实现 SELECT 语句的解析
-  // 1. 解析选择的列（包括 *）
-  // 2. 解析 FROM 子句
-  // 3. 解析可选的 JOIN 子句
-  // 4. 解析可选的 WHERE 子句
-  // 5. 验证语法正确性
+  // TODO: 实现查询的解析
   return Query{};
 }
 
 Query Parser::parseUpdate() {
-  // TODO: 实现 UPDATE 语句的解析
-  // 1. 解析表名
-  // 2. 解析 SET 子句
-  // 3. 解析可选的 WHERE 子句
-  // 4. 验证语法正确性
+  // TODO: 实现更新的解析
   return Query{};
 }
 
 Query Parser::parseDelete() {
-  // TODO: 实现 DELETE 语句的解析
-  // 1. 解析表名
-  // 2. 解析可选的 WHERE 子句
-  // 3. 验证语法正确性
+  // TODO: 实现删除的解析
   return Query{};
 }
 
 std::vector<utils::Condition> Parser::parseWhereClause() {
-  // TODO: 实现 WHERE 子句的解析
-  // 1. 解析条件列表（支持 AND）
-  // 2. 支持表名限定的列引用
+  // TODO: 实现WHERE子句的解析
   return {};
 }
 
 std::vector<utils::JoinClause> Parser::parseJoinClauses() {
-  // TODO: 实现 JOIN 子句的解析
-  // 1. 解析 INNER JOIN
-  // 2. 解析 ON 条件
+  // TODO: 实现JOIN子句的解析
   return {};
 }
 
 utils::ColumnRef Parser::parseColumnRef() {
   // TODO: 实现列引用的解析
-  // 1. 解析可能带表名限定的列名
-  return {};
+  return utils::ColumnRef();
+}
+
+void Parser::advance() {
+  if (token_index < tokens.size() - 1) {
+    token_index++;
+    current_token = &tokens[token_index];
+  } else {
+    current_token = nullptr;
+  }
+}
+
+void Parser::throwError(const std::string &message) {
+  size_t line = current_token ? current_token->line : 0;
+  size_t column = current_token ? current_token->column : 0;
+  throw utils::SQLError(message, line, column);
 }
