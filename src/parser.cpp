@@ -1,125 +1,69 @@
 #include "parser.hpp"
-#include "database.hpp"
-#include <stdexcept>
 
 Parser::Parser(const std::string &input)
-    : lexer_(input), current_token(nullptr), token_index(0) {
-  // 初始化时获取所有token
-  utils::Token token = lexer_.nextToken();
-  while (token.type != utils::TokenType::END_OF_FILE) {
-    tokens.push_back(token);
-    token = lexer_.nextToken();
-  }
-  tokens.push_back(token); // 添加EOF标记
-
-  if (!tokens.empty()) {
-    current_token = &tokens[0];
-  }
-}
-
-void Parser::parseStatement(Database &db) {
-  if (!current_token) {
-    throwError("No tokens to parse");
-  }
-
-  Query query;
-  switch (current_token->type) {
-  case utils::TokenType::KEYWORD:
-    if (current_token->value == "CREATE") {
-      advance();
-      if (current_token->value == "DATABASE") {
-        query = parseCreateDatabase();
-      } else if (current_token->value == "TABLE") {
-        query = parseCreateTable();
-      } else {
-        throwError("Expected DATABASE or TABLE after CREATE");
-      }
-    }
-    // TODO: 处理其他类型的语句
-    break;
-  default:
-    throwError("Unexpected token at start of statement");
-  }
-
-  // TODO: 执行查询
-}
-
-Query Parser::parseCreateDatabase() {
-  Query query;
-  query.type = QueryType::CREATE_DATABASE;
-
-  advance(); // 跳过 DATABASE 关键字
-  if (!current_token || current_token->type != utils::TokenType::IDENTIFIER) {
-    throwError("Expected database name");
-  }
-
-  query.databaseName = current_token->value;
+    : lexer(input), current_token(TokenType::EOF_TOKEN) {
   advance();
-
-  return query;
-}
-
-Query Parser::parseCreateTable() {
-  // TODO: 实现创建表的解析
-  return Query{};
-}
-
-Query Parser::parseUseDatabase() {
-  // TODO: 实现使用数据库的解析
-  return Query{};
-}
-
-Query Parser::parseDropTable() {
-  // TODO: 实现删除表的解析
-  return Query{};
-}
-
-Query Parser::parseInsert() {
-  // TODO: 实现插入的解析
-  return Query{};
-}
-
-Query Parser::parseSelect() {
-  // TODO: 实现查询的解析
-  return Query{};
-}
-
-Query Parser::parseUpdate() {
-  // TODO: 实现更新的解析
-  return Query{};
-}
-
-Query Parser::parseDelete() {
-  // TODO: 实现删除的解析
-  return Query{};
-}
-
-std::vector<utils::Condition> Parser::parseWhereClause() {
-  // TODO: 实现WHERE子句的解析
-  return {};
-}
-
-std::vector<utils::JoinClause> Parser::parseJoinClauses() {
-  // TODO: 实现JOIN子句的解析
-  return {};
-}
-
-utils::ColumnRef Parser::parseColumnRef() {
-  // TODO: 实现列引用的解析
-  return utils::ColumnRef();
 }
 
 void Parser::advance() {
-  if (token_index < tokens.size() - 1) {
-    token_index++;
-    current_token = &tokens[token_index];
-  } else {
-    current_token = nullptr;
-  }
+  // TODO: Get next token
 }
 
-void Parser::throwError(const std::string &message) {
-  size_t line = current_token ? current_token->line : 0;
-  size_t column = current_token ? current_token->column : 0;
-  throw utils::SQLError(message, line, column);
+bool Parser::match(TokenType type) {
+  // TODO: Check if current token matches type
+  return false;
+}
+
+void Parser::expect(TokenType type) {
+  // TODO: Verify current token is of expected type
+}
+
+std::unique_ptr<SQLStatement> Parser::parse() {
+  // TODO: Parse SQL statement
+  return nullptr;
+}
+
+std::unique_ptr<SQLStatement> Parser::parseStatement() {
+  // TODO: Parse different types of SQL statements
+  return nullptr;
+}
+
+std::unique_ptr<CreateDatabaseStatement> Parser::parseCreateDatabase() {
+  // TODO: Parse CREATE DATABASE statement
+  return nullptr;
+}
+
+std::unique_ptr<UseDatabaseStatement> Parser::parseUseDatabase() {
+  // TODO: Parse USE DATABASE statement
+  return nullptr;
+}
+
+std::unique_ptr<CreateTableStatement> Parser::parseCreateTable() {
+  // TODO: Parse CREATE TABLE statement
+  return nullptr;
+}
+
+std::unique_ptr<DropTableStatement> Parser::parseDropTable() {
+  // TODO: Parse DROP TABLE statement
+  return nullptr;
+}
+
+std::unique_ptr<InsertStatement> Parser::parseInsert() {
+  // TODO: Parse INSERT statement
+  return nullptr;
+}
+
+std::unique_ptr<SelectStatement> Parser::parseSelect() {
+  // TODO: Parse SELECT statement
+  return nullptr;
+}
+
+std::unique_ptr<UpdateStatement> Parser::parseUpdate() {
+  // TODO: Parse UPDATE statement
+  return nullptr;
+}
+
+std::unique_ptr<DeleteStatement> Parser::parseDelete() {
+  // TODO: Parse DELETE statement
+  return nullptr;
 }

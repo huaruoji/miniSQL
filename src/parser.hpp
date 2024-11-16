@@ -1,61 +1,79 @@
 #pragma once
 #include "lexer.hpp"
-#include "utils.hpp"
 #include <memory>
-#include <string>
 #include <vector>
 
-class Database;
 
-enum class QueryType {
-  CREATE_DATABASE,
-  USE_DATABASE,
-  CREATE_TABLE,
-  DROP_TABLE,
-  INSERT,
-  SELECT,
-  UPDATE,
-  DELETE
+struct SQLStatement {
+  virtual ~SQLStatement() = default;
 };
 
-struct Query {
-  QueryType type;
-  std::string databaseName;
-  std::string tableName;
-  std::vector<utils::Column> columns;
-  std::vector<utils::ColumnRef> selectColumns;
-  std::vector<utils::Value> values;
-  std::vector<utils::Condition> whereConditions;
-  std::vector<utils::JoinClause> joins;
-  std::vector<std::pair<std::string, utils::Value>> updateAssignments;
+struct CreateDatabaseStatement : SQLStatement {
+  std::string database_name;
+};
 
-  Query() : type(QueryType::SELECT) {}
+struct UseDatabaseStatement : SQLStatement {
+  std::string database_name;
+};
+
+struct ColumnDefinition {
+  std::string name;
+  TokenType type;
+};
+
+struct CreateTableStatement : SQLStatement {
+  std::string table_name;
+  std::vector<ColumnDefinition> columns;
+};
+
+struct DropTableStatement : SQLStatement {
+  std::string table_name;
+};
+
+struct InsertStatement : SQLStatement {
+  std::string table_name;
+  std::vector<std::string> values;
+};
+
+struct SelectStatement : SQLStatement {
+  std::vector<std::string> columns;
+  std::string table_name;
+  std::string join_table;
+  std::string join_condition;
+  std::string where_condition;
+};
+
+struct UpdateStatement : SQLStatement {
+  std::string table_name;
+  std::vector<std::pair<std::string, std::string>> set_columns;
+  std::string where_condition;
+};
+
+struct DeleteStatement : SQLStatement {
+  std::string table_name;
+  std::string where_condition;
 };
 
 class Parser {
 public:
   explicit Parser(const std::string &input);
-  void parseStatement(Database &db);
+  std::unique_ptr<SQLStatement> parse();
 
 private:
-  Lexer lexer_;
-  const utils::Token *current_token;
-  std::vector<utils::Token> tokens;
-  size_t token_index;
+  Lexer lexer;
+  Token current_token;
 
   void advance();
-  void throwError(const std::string &message);
+  bool match(TokenType type);
+  void expect(TokenType type);
 
-  Query parseCreateDatabase();
-  Query parseUseDatabase();
-  Query parseCreateTable();
-  Query parseDropTable();
-  Query parseInsert();
-  Query parseSelect();
-  Query parseUpdate();
-  Query parseDelete();
-
-  std::vector<utils::Condition> parseWhereClause();
-  std::vector<utils::JoinClause> parseJoinClauses();
-  utils::ColumnRef parseColumnRef();
+  std::unique_ptr<SQLStatement> parseStatement();
+  std::unique_ptr<CreateDatabaseStatement> parseCreateDatabase();
+  std::unique_ptr<UseDatabaseStatement> parseUseDatabase();
+  std::unique_ptr<CreateTableStatement> parseCreateTable();
+  std::unique_ptr<DropTableStatement> parseDropTable();
+  std::unique_ptr<InsertStatement> parseInsert();
+  std::unique_ptr<SelectStatement> parseSelect();
+  std::unique_ptr<UpdateStatement> parseUpdate();
+  std::unique_ptr<DeleteStatement> parseDelete();
 };

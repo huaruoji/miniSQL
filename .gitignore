@@ -1,51 +1,26 @@
-# Build directories
-/out/
-/build/
-/cmake-build-*/
+# Build directory
+build/
+cmake-build-*/
 
-# IDE specific files
+# IDE files
 .idea/
 .vscode/
-*.swp
-*.swo
 
-# Compiled Object files
-*.slo
-*.lo
+# Compiled files
 *.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
 *.out
-*.app
+*.exe
+minidb
 
-# CMake
+# CMake files
 CMakeCache.txt
 CMakeFiles/
-cmake_install.cmake
-install_manifest.txt
+*.cmake
+Makefile
 
-# OS specific
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db 
+# Database files
+*.db
+
+# Output files
+output.txt
+output.csv 

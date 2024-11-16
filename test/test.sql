@@ -1,8 +1,8 @@
--- Database operations
-CREATE DATABASE school;
-USE DATABASE school;
+-- Test Database Operations
+CREATE DATABASE university;
+USE DATABASE university;
 
--- Create tables
+-- Test Table Creation
 CREATE TABLE students (
     id INTEGER,
     name TEXT,
@@ -21,57 +21,80 @@ CREATE TABLE enrollments (
     grade FLOAT
 );
 
--- Insert test data into students
-INSERT INTO students VALUES (1001, 'John Smith', 3.5);
-INSERT INTO students VALUES (1002, 'Mary Johnson', 3.8);
-INSERT INTO students VALUES (1003, 'Bob Wilson', 3.2);
-INSERT INTO students VALUES (1004, 'Alice Brown', 3.9);
+-- Test Basic Inserts
+INSERT INTO students VALUES (1001, 'John Smith', 3.50);
+INSERT INTO students VALUES (1002, 'Mary Johnson', 3.80);
+INSERT INTO students VALUES (1003, 'Bob Wilson', 3.20);
+INSERT INTO students VALUES (1004, 'Alice Brown', 3.90);
 
--- Insert test data into courses
-INSERT INTO courses VALUES (101, 'Introduction to Programming', 3.0);
-INSERT INTO courses VALUES (102, 'Data Structures', 4.0);
-INSERT INTO courses VALUES (103, 'Database Systems', 3.0);
-INSERT INTO courses VALUES (104, 'Computer Networks', 3.0);
+INSERT INTO courses VALUES (101, 'Introduction to Programming', 3.00);
+INSERT INTO courses VALUES (102, 'Data Structures', 4.00);
+INSERT INTO courses VALUES (103, 'Database Systems', 3.00);
+INSERT INTO courses VALUES (104, 'Computer Networks', 3.00);
 
--- Insert test data into enrollments
-INSERT INTO enrollments VALUES (1001, 101, 3.5);
-INSERT INTO enrollments VALUES (1001, 102, 3.7);
-INSERT INTO enrollments VALUES (1002, 101, 4.0);
-INSERT INTO enrollments VALUES (1002, 103, 3.8);
-INSERT INTO enrollments VALUES (1003, 102, 3.0);
-INSERT INTO enrollments VALUES (1004, 103, 4.0);
-INSERT INTO enrollments VALUES (1004, 104, 3.9);
+INSERT INTO enrollments VALUES (1001, 101, 3.50);
+INSERT INTO enrollments VALUES (1001, 102, 3.70);
+INSERT INTO enrollments VALUES (1002, 101, 4.00);
+INSERT INTO enrollments VALUES (1002, 103, 3.80);
+INSERT INTO enrollments VALUES (1003, 102, 3.00);
+INSERT INTO enrollments VALUES (1004, 103, 4.00);
+INSERT INTO enrollments VALUES (1004, 104, 3.90);
 
--- Basic SELECT queries
-SELECT id, name, gpa FROM students;
-SELECT * FROM courses;
+-- Test Basic Selects
+SELECT * FROM students;
+SELECT id, name FROM students;
+SELECT code, name, credits FROM courses;
 
--- WHERE clause tests
-SELECT name, gpa FROM students WHERE gpa > 3.5;
-SELECT code, name FROM courses WHERE credits >= 4.0;
+-- Test WHERE Clause
+SELECT name, gpa FROM students WHERE gpa > 3.50;
+SELECT * FROM courses WHERE credits = 4.00;
+SELECT * FROM enrollments WHERE grade >= 3.80;
 
--- JOIN operations
+-- Test Complex WHERE Conditions
+SELECT * FROM students WHERE gpa > 3.00 AND gpa < 3.80;
+SELECT * FROM enrollments WHERE student_id = 1001 OR student_id = 1002;
+
+-- Test Joins
 SELECT students.name, courses.name, enrollments.grade
 FROM students
 INNER JOIN enrollments ON students.id = enrollments.student_id
 INNER JOIN courses ON enrollments.course_code = courses.code;
 
--- UPDATE operations
-UPDATE students SET gpa = 3.6 WHERE id = 1003;
-SELECT id, name, gpa FROM students WHERE id = 1003;
+-- Test Updates
+UPDATE students SET gpa = 3.60 WHERE id = 1003;
+UPDATE courses SET credits = 4.00 WHERE code = 103;
+UPDATE enrollments SET grade = grade + 0.10 WHERE student_id = 1001;
 
--- DELETE operations
-DELETE FROM enrollments WHERE student_id = 1001 AND course_code = 101;
+-- Verify Updates
+SELECT * FROM students WHERE id = 1003;
+SELECT * FROM courses WHERE code = 103;
 SELECT * FROM enrollments WHERE student_id = 1001;
 
--- Complex queries
-SELECT students.name, AVG(enrollments.grade) as avg_grade
-FROM students
-INNER JOIN enrollments ON students.id = enrollments.student_id
-GROUP BY students.id
-HAVING avg_grade > 3.5;
+-- Test Multiple Column Updates
+UPDATE students 
+SET gpa = 3.90, name = 'Robert Wilson' 
+WHERE id = 1003;
 
--- Drop table test
+-- Test Deletes
+DELETE FROM enrollments WHERE grade < 3.50;
+DELETE FROM students WHERE gpa < 3.00;
+
+-- Verify Deletes
+SELECT * FROM enrollments;
+SELECT * FROM students;
+
+-- Test Drop Tables
 DROP TABLE enrollments;
 DROP TABLE courses;
-DROP TABLE students; 
+DROP TABLE students;
+
+-- Test Creating Another Database
+CREATE DATABASE school;
+USE DATABASE school;
+
+-- Verify Previous Database Tables are Gone
+CREATE TABLE students (
+    id INTEGER,
+    name TEXT,
+    gpa FLOAT
+); 

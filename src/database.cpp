@@ -1,92 +1,60 @@
 #include "database.hpp"
 #include <stdexcept>
 
-void Database::createDatabase(const std::string &name) {
-  // TODO: 检查数据库是否已存在
-  databases[name] = std::unordered_map<std::string, std::unique_ptr<Table>>();
-}
-
-void Database::useDatabase(const std::string &name) {
-  checkDatabaseExists(name);
-  currentDatabase = name;
-}
+Database::Database(const std::string &name) : name(name) {}
 
 void Database::createTable(const std::string &name,
-                           const std::vector<utils::Column> &columns) {
-  checkDatabaseSelected();
-  auto &db = databases[currentDatabase];
-  if (db.find(name) != db.end()) {
-    throw std::runtime_error("Table already exists: " + name);
-  }
-  db[name] = std::make_unique<Table>(name, columns);
+                           const std::vector<ColumnDefinition> &columns) {
+  // TODO: Implement table creation
 }
 
 void Database::dropTable(const std::string &name) {
-  checkDatabaseSelected();
-  auto &db = databases[currentDatabase];
-  if (db.find(name) == db.end()) {
-    throw std::runtime_error("Table does not exist: " + name);
+  // TODO: Implement table deletion
+}
+
+void Database::insertIntoTable(const std::string &name,
+                               const std::vector<std::string> &values) {
+  // TODO: Implement record insertion
+}
+
+std::vector<std::vector<std::string>>
+Database::selectFromTable(const SelectStatement &stmt) {
+  // TODO: Implement table querying
+  return {};
+}
+
+void Database::updateTable(const UpdateStatement &stmt) {
+  // TODO: Implement record updating
+}
+
+void Database::deleteFromTable(const DeleteStatement &stmt) {
+  // TODO: Implement record deletion
+}
+
+void Database::saveToFile() const {
+  // TODO: Implement database persistence
+}
+
+void Database::loadFromFile() {
+  // TODO: Implement database loading
+}
+
+DatabaseManager &DatabaseManager::getInstance() {
+  static DatabaseManager instance;
+  return instance;
+}
+
+void DatabaseManager::createDatabase(const std::string &name) {
+  // TODO: Implement database creation
+}
+
+void DatabaseManager::useDatabase(const std::string &name) {
+  // TODO: Implement database selection
+}
+
+Database &DatabaseManager::getCurrentDatabase() {
+  if (!current_database) {
+    throw std::runtime_error("No database selected");
   }
-  db.erase(name);
-}
-
-void Database::insert(const std::string &tableName,
-                      const std::vector<utils::Value> &values) {
-  Table *table = getTable(tableName);
-  table->insert(values);
-}
-
-void Database::update(
-    const std::string &tableName,
-    const std::vector<std::pair<std::string, utils::Value>> &assignments,
-    const std::vector<utils::Condition> &conditions) {
-  Table *table = getTable(tableName);
-  table->update(assignments, conditions);
-}
-
-void Database::deleteFrom(const std::string &tableName,
-                          const std::vector<utils::Condition> &conditions) {
-  Table *table = getTable(tableName);
-  table->deleteRows(conditions);
-}
-
-std::vector<std::vector<utils::Value>>
-Database::select(const std::string &tableName,
-                 const std::vector<std::string> &columns,
-                 const std::vector<utils::Condition> &conditions,
-                 const std::vector<utils::JoinClause> &joins) {
-  Table *table = getTable(tableName);
-  return table->select(columns, conditions, joins);
-}
-
-void Database::checkDatabaseExists(const std::string &name) const {
-  if (databases.find(name) == databases.end()) {
-    throw utils::SQLError("Database does not exist: " + name);
-  }
-}
-
-void Database::checkDatabaseSelected() const {
-  if (currentDatabase.empty()) {
-    throw utils::SQLError("No database selected");
-  }
-}
-
-Table *Database::getTable(const std::string &name) {
-  checkDatabaseSelected();
-  auto &db = databases[currentDatabase];
-  auto it = db.find(name);
-  if (it == db.end()) {
-    throw utils::SQLError("Table does not exist: " + name);
-  }
-  return it->second.get();
-}
-
-const Table *Database::getTable(const std::string &name) const {
-  checkDatabaseSelected();
-  const auto &db = databases.at(currentDatabase);
-  auto it = db.find(name);
-  if (it == db.end()) {
-    throw utils::SQLError("Table does not exist: " + name);
-  }
-  return it->second.get();
+  return *current_database;
 }

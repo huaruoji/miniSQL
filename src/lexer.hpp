@@ -1,31 +1,64 @@
 #pragma once
-#include "utils.hpp"
 #include <string>
 #include <vector>
 
+enum class TokenType {
+  CREATE,
+  DATABASE,
+  USE,
+  TABLE,
+  DROP,
+  INSERT,
+  INTO,
+  VALUES,
+  SELECT,
+  FROM,
+  WHERE,
+  UPDATE,
+  SET,
+  DELETE,
+  INNER,
+  JOIN,
+  ON,
+  AND,
+  OR,
+  INTEGER,
+  FLOAT,
+  TEXT,
+  IDENTIFIER,
+  STRING_LITERAL,
+  NUMBER,
+  COMMA,
+  SEMICOLON,
+  LEFT_PAREN,
+  RIGHT_PAREN,
+  EQUALS,
+  GREATER_THAN,
+  LESS_THAN,
+  DOT,
+  EOF_TOKEN
+};
+
+struct Token {
+  TokenType type;
+  std::string value;
+
+  Token(TokenType t, std::string v = "") : type(t), value(v) {}
+};
+
 class Lexer {
 public:
-  explicit Lexer(std::string input);
-
-  // Get next token from input
-  utils::Token nextToken();
-
-  // Peek at next token without consuming it
-  utils::Token peekToken();
-
-  // Get current line number
-  int getCurrentLine() const;
+  explicit Lexer(const std::string &input);
+  Token getNextToken();
 
 private:
-  std::string input_;
-  size_t position_;
-  int current_line_;
+  std::string input;
+  size_t position;
 
-  // Helper methods
+  char peek() const;
+  char advance();
   void skipWhitespace();
-  void skipComment();
-  utils::Token readNumber();
-  utils::Token readIdentifier();
-  utils::Token readString();
-  utils::Token readOperator();
+  Token readIdentifier();
+  Token readNumber();
+  Token readString();
 };

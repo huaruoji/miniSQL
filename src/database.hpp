@@ -1,49 +1,42 @@
 #pragma once
 #include "table.hpp"
-#include "utils.hpp"
-#include <map>
 #include <memory>
 #include <string>
 #include <unordered_map>
 
+
 class Database {
 public:
-  explicit Database(std::string name);
+  explicit Database(const std::string &name);
 
-  // Database operations
-  void createDatabase(const std::string &name);
-  void useDatabase(const std::string &name);
   void createTable(const std::string &name,
-                   const std::vector<utils::Column> &columns);
+                   const std::vector<ColumnDefinition> &columns);
   void dropTable(const std::string &name);
+  void insertIntoTable(const std::string &name,
+                       const std::vector<std::string> &values);
+  std::vector<std::vector<std::string>>
+  selectFromTable(const SelectStatement &stmt);
+  void updateTable(const UpdateStatement &stmt);
+  void deleteFromTable(const DeleteStatement &stmt);
 
-  // Data manipulation
-  void insert(const std::string &tableName,
-              const std::vector<utils::Value> &values);
-  void
-  update(const std::string &tableName,
-         const std::vector<std::pair<std::string, utils::Value>> &assignments,
-         const std::vector<utils::Condition> &conditions);
-  void deleteFrom(const std::string &tableName,
-                  const std::vector<utils::Condition> &conditions);
-
-  // Queries
-  std::vector<std::vector<utils::Value>>
-  select(const std::string &tableName, const std::vector<std::string> &columns,
-         const std::vector<utils::Condition> &conditions,
-         const std::vector<utils::JoinClause> &joins);
-
-  // Table access
-  Table *getTable(const std::string &name);
-  const Table *getTable(const std::string &name) const;
-  bool hasTable(const std::string &name) const;
+  void saveToFile() const;
+  void loadFromFile();
 
 private:
-  std::string name_;
-  std::string currentDatabase;
-  std::map<std::string, std::unordered_map<std::string, std::unique_ptr<Table>>>
-      databases;
+  std::string name;
+  std::unordered_map<std::string, std::unique_ptr<Table>> tables;
+};
 
-  void checkDatabaseExists(const std::string &name) const;
-  void checkDatabaseSelected() const;
+class DatabaseManager {
+public:
+  static DatabaseManager &getInstance();
+
+  void createDatabase(const std::string &name);
+  void useDatabase(const std::string &name);
+  Database &getCurrentDatabase();
+
+private:
+  DatabaseManager() = default;
+  std::unordered_map<std::string, std::unique_ptr<Database>> databases;
+  Database *current_database{nullptr};
 };
