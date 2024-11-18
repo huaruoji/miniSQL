@@ -1,9 +1,9 @@
 #pragma once
+#include "sql_statement.hpp"
 #include "table.hpp"
 #include <memory>
 #include <string>
 #include <unordered_map>
-
 
 class Database {
 public:
@@ -25,18 +25,4 @@ public:
 private:
   std::string name;
   std::unordered_map<std::string, std::unique_ptr<Table>> tables;
-};
-
-class DatabaseManager {
-public:
-  static DatabaseManager &getInstance();
-
-  void createDatabase(const std::string &name);
-  void useDatabase(const std::string &name);
-  Database &getCurrentDatabase();
-
-private:
-  DatabaseManager() = default;
-  std::unordered_map<std::string, std::unique_ptr<Database>> databases;
-  Database *current_database{nullptr};
 };

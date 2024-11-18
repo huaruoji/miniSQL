@@ -1,8 +1,13 @@
 #pragma once
 #include "parser.hpp"
+#include "sql_statement.hpp"
+#include "utils.hpp"
 #include <string>
 #include <vector>
 
+class Row {
+  std::vector<Value> values;
+};
 
 class Table {
 public:
@@ -19,5 +24,8 @@ public:
 private:
   std::string name;
   std::vector<ColumnDefinition> columns;
-  std::vector<std::vector<std::string>> rows;
+
+  // 暂时使用 vector 存储数据，后面可能升级成 multiset，并且建立索引来支持 log
+  // 复杂度的查询
+  std::vector<Row> rows;
 };

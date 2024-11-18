@@ -1,15 +1,23 @@
 #include "database.hpp"
+#include "sql_statement.hpp"
+#include "utils.hpp"
 #include <stdexcept>
 
 Database::Database(const std::string &name) : name(name) {}
 
 void Database::createTable(const std::string &name,
                            const std::vector<ColumnDefinition> &columns) {
-  // TODO: Implement table creation
+  if (tables.find(name) != tables.end()) {
+    throw DatabaseError("Table already exists");
+  }
+  tables[name] = std::make_unique<Table>(name, columns);
 }
 
 void Database::dropTable(const std::string &name) {
-  // TODO: Implement table deletion
+  if (tables.find(name) == tables.end()) {
+    throw DatabaseError("Table does not exist");
+  }
+  tables.erase(name);
 }
 
 void Database::insertIntoTable(const std::string &name,
@@ -37,24 +45,4 @@ void Database::saveToFile() const {
 
 void Database::loadFromFile() {
   // TODO: Implement database loading
-}
-
-DatabaseManager &DatabaseManager::getInstance() {
-  static DatabaseManager instance;
-  return instance;
-}
-
-void DatabaseManager::createDatabase(const std::string &name) {
-  // TODO: Implement database creation
-}
-
-void DatabaseManager::useDatabase(const std::string &name) {
-  // TODO: Implement database selection
-}
-
-Database &DatabaseManager::getCurrentDatabase() {
-  if (!current_database) {
-    throw std::runtime_error("No database selected");
-  }
-  return *current_database;
 }
