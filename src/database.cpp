@@ -5,44 +5,44 @@
 
 Database::Database(const std::string &name) : name(name) {}
 
-void Database::createTable(const std::string &name,
-                           const std::vector<ColumnDefinition> &columns) {
-  if (tables.find(name) != tables.end()) {
-    throw DatabaseError("Table already exists");
+void Database::executeStatement(SQLStatement *stmt) {
+  switch (stmt->type) {
+  case SQLStatementType::CREATE_TABLE: {
+    auto create_stmt = static_cast<CreateTableStatement *>(stmt);
+    if (tables.find(create_stmt->table_name) != tables.end()) {
+      throw DatabaseError("Table already exists");
+    }
+    tables[create_stmt->table_name] =
+        std::make_unique<Table>(create_stmt->table_name, create_stmt->columns);
+    break;
   }
-  tables[name] = std::make_unique<Table>(name, columns);
-}
-
-void Database::dropTable(const std::string &name) {
-  if (tables.find(name) == tables.end()) {
-    throw DatabaseError("Table does not exist");
+  case SQLStatementType::DROP_TABLE: {
+    auto drop_stmt = static_cast<DropTableStatement *>(stmt);
+    if (tables.find(drop_stmt->table_name) == tables.end()) {
+      throw DatabaseError("Table does not exist");
+    }
+    tables.erase(drop_stmt->table_name);
+    break;
   }
-  tables.erase(name);
-}
-
-void Database::insertIntoTable(const std::string &name,
-                               const std::vector<std::string> &values) {
-  // TODO: Implement record insertion
-}
-
-std::vector<std::vector<std::string>>
-Database::selectFromTable(const SelectStatement &stmt) {
-  // TODO: Implement table querying
-  return {};
-}
-
-void Database::updateTable(const UpdateStatement &stmt) {
-  // TODO: Implement record updating
-}
-
-void Database::deleteFromTable(const DeleteStatement &stmt) {
-  // TODO: Implement record deletion
-}
-
-void Database::saveToFile() const {
-  // TODO: Implement database persistence
-}
-
-void Database::loadFromFile() {
-  // TODO: Implement database loading
+  case SQLStatementType::INSERT: {
+    auto insert_stmt = static_cast<InsertStatement *>(stmt);
+    std::cerr << insert_stmt->table_name << insert_stmt->values.size()
+              << std::endl;
+    if (tables.find(insert_stmt->table_name) == tables.end()) {
+      throw DatabaseError("Table does not exist");
+    }
+    tables[insert_stmt->table_name]->insert(insert_stmt->values);
+    break;
+  }
+  case SQLStatementType::SELECT: {
+    auto select_stmt = static_cast<SelectStatement *>(stmt);
+    if (tables.find(select_stmt->table_name) == tables.end()) {
+      throw DatabaseError("Table does not exist");
+    }
+    tables[select_stmt->table_name]->select(*select_stmt);
+    break;
+  }
+  default:
+    throw DatabaseError("Unknown statement type");
+  }
 }

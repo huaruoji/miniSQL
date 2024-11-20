@@ -5,7 +5,6 @@
 #include <memory>
 #include <vector>
 
-
 class Parser {
 public:
   explicit Parser(const std::string &input);
@@ -18,6 +17,7 @@ private:
   void advance();
   bool match(TokenType type);
   bool consume(TokenType type);
+  bool exist(TokenType type);
 
   std::unique_ptr<WhereCondition> parseWhereCondition();
   std::unique_ptr<CreateDatabaseStatement> parseCreateDatabase();
@@ -28,4 +28,5 @@ private:
   std::unique_ptr<SelectStatement> parseSelect();
   std::unique_ptr<UpdateStatement> parseUpdate();
   std::unique_ptr<DeleteStatement> parseDelete();
+  std::unique_ptr<InnerJoinStatement> parseInnerJoin();
 };

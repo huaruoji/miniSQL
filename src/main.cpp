@@ -22,10 +22,32 @@ int main(int argc, char *argv[]) {
     }
     const std::vector<std::string> &&statements = splitStatements(input_file);
 
+    // Open output file for writing
+    file_writer.open(argv[2]);
+
     // Parse statements and execute
     for (const auto &statement : statements) {
       std::unique_ptr<SQLStatement> parsed_statement =
           Parser(statement).parse();
+      std::cerr << SQL_STATEMENT_TYPE_STR.find(parsed_statement->type)->second
+                << "\n";
+      if (parsed_statement->type == SQLStatementType::CREATE_DATABASE) {
+        if (databases.find(parsed_statement->getDatabaseName()) !=
+            databases.end()) {
+          throw DatabaseError("Database already exists");
+        }
+        databases[parsed_statement->getDatabaseName()] =
+            std::make_unique<Database>(parsed_statement->getDatabaseName());
+      } else if (parsed_statement->type == SQLStatementType::USE_DATABASE) {
+        if (databases.find(parsed_statement->getDatabaseName()) ==
+            databases.end()) {
+          throw DatabaseError("Database does not exist");
+        }
+        current_database = databases[parsed_statement->getDatabaseName()].get();
+      } else {
+        current_database->executeStatement(parsed_statement.get());
+      }
+      std::cerr << "Successfully parsed statement\n";
     }
   } catch (const ArgumentError &e) {
     std::cerr << "Error: " << e.what() << "\n"

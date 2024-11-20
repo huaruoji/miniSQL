@@ -441,8 +441,7 @@ SELECT * FROM enrollments WHERE student_id = 1001 OR student_id = 1002;
 -- Test Joins
 SELECT students.name, courses.name, enrollments.grade
 FROM students
-INNER JOIN enrollments ON students.id = enrollments.student_id
-INNER JOIN courses ON enrollments.course_code = courses.code;
+INNER JOIN enrollments ON students.id = enrollments.student_id;
 
 -- Test Updates
 UPDATE students SET gpa = 3.60 WHERE id = 1003;

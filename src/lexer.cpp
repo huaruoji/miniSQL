@@ -1,20 +1,31 @@
 #include "lexer.hpp"
+#include <algorithm>
+
 Lexer::Lexer(const std::string &input)
     : input(input), current_token(Token(TokenType::EOF_TOKEN)) {
   std::string current_string;
+  bool parsing_str_literal = false;
   for (char c : input) {
-    auto createToken = [&](const std::string &str) {
-      if (!str.empty())
-        tokens.push_back(recognizeToken(str));
+    auto createToken = [&]() {
+      if (!current_string.empty())
+        tokens.push_back(recognizeToken(current_string));
+      current_string.clear();
     };
-    if (c == '(' || c == ')' || c == ',' || c == ';' || c == '=' || c == '>' ||
-        c == '<' || c == '*') {
-      createToken(current_string);
-      current_string.clear();
+    if (c == '\'') {
+      if (parsing_str_literal) {
+        tokens.push_back(Token(TokenType::STRING_LITERAL, current_string));
+        current_string.clear();
+        parsing_str_literal = false;
+      } else
+        parsing_str_literal = true;
+    } else if (c == '(' || c == ')' || c == ',' || c == ';' || c == '=' ||
+               c == '>' || c == '<' || c == '*' || c == '+' || c == '-' ||
+               (c == '.' && !std::all_of(current_string.begin(),
+                                         current_string.end(), ::isdigit))) {
+      createToken();
       tokens.push_back(recognizeToken(std::string(1, c)));
-    } else if (std::isspace(c) || c == '\n') {
-      createToken(current_string);
-      current_string.clear();
+    } else if (std::isspace(c) && !parsing_str_literal) {
+      createToken();
     } else {
       current_string += c;
     }
@@ -24,44 +35,19 @@ Lexer::Lexer(const std::string &input)
     tokens.push_back(recognizeToken(current_string));
   }
   for (const auto &token : tokens) {
-    std::cerr << token.value << std::endl;
+    assert(!token.value.empty());
+    std::cerr << token.value << ' ';
   }
-}
-
-Token Lexer::recognizeToken(const std::string &token) {
-  if (TOKEN_MAP.find(token) != TOKEN_MAP.end()) {
-    return Token(TOKEN_MAP.at(token));
-  }
-
-  // Check if token is an integer literal
-  bool is_integer = true;
-  for (char c : token) {
-    if (!std::isdigit(c)) {
-      is_integer = false;
-      break;
+  std::cerr << std::endl;
+  for (const auto &token : tokens) {
+    auto it = TOKEN_STR.find(token.type);
+    if (it != TOKEN_STR.end()) {
+      std::cerr << it->second << ' ';
+    } else {
+      std::cerr << "UNKNOWN_TOKEN_TYPE" << ' ';
     }
   }
-  if (is_integer) {
-    return Token(TokenType::INTEGER_LITERAL, token);
-  }
-
-  // Check if token is a float literal
-  bool is_float = true;
-  int decimal_count = 0;
-  for (size_t i = 0; i < token.length(); i++) {
-    char c = token[i];
-    if (c == '.') {
-      ++decimal_count;
-    } else if (!std::isdigit(c)) {
-      is_float = false;
-      break;
-    }
-  }
-  if (is_float && decimal_count == 1) {
-    return Token(TokenType::FLOAT_LITERAL, token);
-  }
-
-  return Token(TokenType::IDENTIFIER, token);
+  std::cerr << std::endl;
 }
 
 void Lexer::advance() {
@@ -76,4 +62,13 @@ void Lexer::advance() {
 Token Lexer::getNextToken() {
   advance();
   return current_token;
+}
+
+bool Lexer::exist(TokenType type) {
+  for (const auto &token : tokens) {
+    if (token.type == type) {
+      return true;
+    }
+  }
+  return false;
 }
