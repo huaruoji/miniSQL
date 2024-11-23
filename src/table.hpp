@@ -14,6 +14,7 @@ public:
   void select(const SelectStatement &stmt);
   void update(const UpdateStatement &stmt);
   void deleteRows(const DeleteStatement &stmt);
+  void innerJoin(const InnerJoinStatement &stmt, Table &table_b);
 
 private:
   std::string name;
@@ -23,4 +24,3 @@ private:
   std::list<std::vector<Value>> rows;
   std::unordered_map<std::string, size_t> column_index;
 };
-;

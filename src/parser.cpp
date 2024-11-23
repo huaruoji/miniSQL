@@ -80,7 +80,7 @@ std::unique_ptr<WhereCondition> Parser::parseWhereCondition() {
       !consume(TokenType::EQUALS)) {
     throw ParseError("Expected operator after column name");
   }
-  where_condition->value_a = current_token.value;
+  where_condition->value_a = current_token;
   if (!(consume(TokenType::STRING_LITERAL) ||
         consume(TokenType::INTEGER_LITERAL) ||
         consume(TokenType::FLOAT_LITERAL))) {
@@ -88,8 +88,9 @@ std::unique_ptr<WhereCondition> Parser::parseWhereCondition() {
         "Expected STRING_LITERAL, INTEGER_LITERAL, or FLOAT_LITERAL "
         "after operator");
   }
-  where_condition->logic_operator = current_token.type;
-  if (consume(TokenType::AND) || consume(TokenType::OR)) {
+  if (match(TokenType::AND) || match(TokenType::OR)) {
+    where_condition->logic_operator = current_token.type;
+    advance();
     where_condition->column_name_b = current_token.value;
     if (!consume(TokenType::IDENTIFIER)) {
       throw ParseError("Expected column name after logic operator");
@@ -99,7 +100,7 @@ std::unique_ptr<WhereCondition> Parser::parseWhereCondition() {
         !consume(TokenType::EQUALS)) {
       throw ParseError("Expected operator after column name");
     }
-    where_condition->value_b = current_token.value;
+    where_condition->value_b = current_token;
     if (!(consume(TokenType::STRING_LITERAL) ||
           consume(TokenType::INTEGER_LITERAL) ||
           consume(TokenType::FLOAT_LITERAL))) {
@@ -190,7 +191,8 @@ std::unique_ptr<InsertStatement> Parser::parseInsert() {
     throw ParseError("Expected LEFT_PAREN after INTO");
   }
   do {
-    statement->values.push_back(current_token.value);
+    // Convert the value based on token type
+    statement->values.push_back(convertTokenToValue(current_token));
     std::cerr << current_token.value << std::endl;
     if (!(consume(TokenType::STRING_LITERAL) ||
           consume(TokenType::INTEGER_LITERAL) ||
@@ -211,9 +213,8 @@ std::unique_ptr<InsertStatement> Parser::parseInsert() {
 
 std::unique_ptr<SelectStatement> Parser::parseSelect() {
   auto statement = std::make_unique<SelectStatement>();
-  if (consume(TokenType::ASTERISK)) {
-    statement->columns.push_back("*");
-  } else {
+  consume(TokenType::ASTERISK);
+  if (!match(TokenType::FROM)) {
     do {
       statement->columns.push_back(current_token.value);
       if (!consume(TokenType::IDENTIFIER)) {
@@ -253,14 +254,16 @@ std::unique_ptr<UpdateStatement> Parser::parseUpdate() {
       throw ParseError("Expected EQUALS after column name");
     }
     TokenType condition_type = TokenType::EOF_TOKEN;
-    Value value;
-    std::string column_name_b = current_token.value;
-    if (consume(TokenType::IDENTIFIER)) {
+    Token value = current_token;
+    std::string column_name_b;
+    if (match(TokenType::IDENTIFIER)) {
+      column_name_b = current_token.value;
+      advance();
       condition_type = current_token.type;
       if (!(consume(TokenType::PLUS) || consume(TokenType::MINUS))) {
         throw ParseError("Expected PLUS or MINUS after column name");
       }
-      value = current_token.value;
+      value = current_token;
       if (!(consume(TokenType::INTEGER_LITERAL) ||
             consume(TokenType::FLOAT_LITERAL))) {
         throw ParseError(
@@ -326,6 +329,7 @@ std::unique_ptr<InnerJoinStatement> Parser::parseInnerJoin() {
   if (!consume(TokenType::IDENTIFIER)) {
     throw ParseError("Expected column name after DOT");
   }
+  std::cerr << current_token.type << ' ' << current_token.value << '\n';
   if (!consume(TokenType::FROM)) {
     throw ParseError("Expected FROM after column name");
   }

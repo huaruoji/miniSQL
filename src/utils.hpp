@@ -41,33 +41,6 @@ public:
       : std::runtime_error(message) {}
 };
 
-inline std::vector<std::string> splitStatements(std::ifstream &input_file) {
-  std::vector<std::string> statements;
-  std::string current_statement;
-  char ch;
-
-  // Read file character by character and build statements
-  while (input_file.get(ch)) {
-    current_statement += ch;
-    if (ch == ';' && !current_statement.empty()) {
-      statements.push_back(current_statement);
-      current_statement.clear();
-    }
-  }
-
-  // check if there is a statement left
-  bool empty_statement = true;
-  for (char c : current_statement) {
-    if (!isspace(c))
-      empty_statement = false;
-  }
-  if (!empty_statement) {
-    throw ParseError("Unterminated statement");
-  }
-
-  return statements;
-}
-
 // Token types and value types
 
 using Value = std::variant<std::string, int, double>;
@@ -177,7 +150,8 @@ struct Token {
   TokenType type;
   std::string value;
 
-  Token(TokenType t, std::string v = "") : type(t), value(v) {}
+  Token(TokenType t = TokenType::EOF_TOKEN, std::string v = "")
+      : type(t), value(v) {}
 };
 
 inline Token recognizeToken(const std::string &token) {
@@ -247,15 +221,15 @@ struct WhereCondition {
   std::string column_name_b;
   TokenType condition_type_a;
   TokenType condition_type_b;
-  Value value_a;
-  Value value_b;
+  Token value_a;
+  Token value_b;
 };
 
 struct SetCondition {
   std::string column_name_a;
   std::string column_name_b;
   TokenType operator_type;
-  Value value;
+  Token value;
 };
 
 struct ColumnDefinition {
@@ -274,6 +248,15 @@ public:
     file.open(filename);
     if (!file.is_open()) {
       throw FileError("Failed to open output file");
+    }
+  }
+
+  void writeColumnNames(const std::vector<Value> &row) {
+    for (const auto &value : row) {
+      file << std::get<std::string>(value);
+      if (&value != &row.back()) {
+        file << ",";
+      }
     }
   }
 
@@ -307,10 +290,63 @@ public:
       file << "---\n";
     }
     for (const auto &row : rows) {
-      write(row);
+      if (&row != &rows.front()) {
+        write(row);
+      } else {
+        writeColumnNames(row);
+      }
       file << "\n";
     }
   }
 };
 
 extern FileWriter file_writer;
+
+// Utility functions
+
+inline Value convertTokenToValue(const Token &token) {
+  if (token.type == TokenType::INTEGER_LITERAL) {
+    return std::stoi(token.value);
+  } else if (token.type == TokenType::FLOAT_LITERAL) {
+    return std::stod(token.value);
+  }
+  return token.value; // For STRING_LITERAL and other types
+}
+
+inline std::vector<std::string> splitStatements(std::ifstream &input_file) {
+  std::vector<std::string> statements;
+  std::string current_statement;
+  char ch;
+
+  // Read file character by character and build statements
+  while (input_file.get(ch)) {
+    current_statement += ch;
+    if (ch == ';' && !current_statement.empty()) {
+      statements.push_back(current_statement);
+      current_statement.clear();
+    }
+  }
+
+  // check if there is a statement left
+  bool empty_statement = true;
+  for (char c : current_statement) {
+    if (!isspace(c))
+      empty_statement = false;
+  }
+  if (!empty_statement) {
+    throw ParseError("Unterminated statement");
+  }
+
+  return statements;
+}
+
+// Add stream output operator for TokenType
+inline std::ostream &operator<<(std::ostream &os, const TokenType &type) {
+  auto it = TOKEN_STR.find(type);
+  if (it != TOKEN_STR.end()) {
+    os << it->second;
+  } else {
+    os << "UNKNOWN_TOKEN_TYPE";
+  }
+  return os;
+}

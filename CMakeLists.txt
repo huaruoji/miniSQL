@@ -11,7 +11,6 @@ set(SOURCES
     src/lexer.cpp
     src/database.cpp
     src/table.cpp
-    src/utils.cpp
 )
 
 # Create executable

@@ -23,3 +23,8 @@
 ## 2024-11-18
 
 - 写了 `Lexer` 和 `Parser`，可以 build，但是 parse 有 bug。
+
+## 2024-11-23
+
+- 修了 parse 的 bug。
+- 

@@ -5,6 +5,8 @@
 #include <fstream>
 #include <iostream>
 
+FileWriter file_writer;
+
 int main(int argc, char *argv[]) {
   std::unordered_map<std::string, std::unique_ptr<Database>> databases;
   Database *current_database = nullptr;
@@ -59,6 +61,12 @@ int main(int argc, char *argv[]) {
     std::cerr << "Error: " << e.what() << "\n";
     return EXIT_FAILURE;
   } catch (const DatabaseError &e) {
+    std::cerr << "Error: " << e.what() << "\n";
+    return EXIT_FAILURE;
+  } catch (const TableError &e) {
+    std::cerr << "Error: " << e.what() << "\n";
+    return EXIT_FAILURE;
+  } catch (const ParseError &e) {
     std::cerr << "Error: " << e.what() << "\n";
     return EXIT_FAILURE;
   } catch (const std::exception &e) {
