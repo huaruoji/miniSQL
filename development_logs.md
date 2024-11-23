@@ -24,7 +24,17 @@
 
 - 写了 `Lexer` 和 `Parser`，可以 build，但是 parse 有 bug。
 
-## 2024-11-23
+## 2024-11-20
 
 - 修了 parse 的 bug。
-- 
+- 添加了 `InnerJoinStatement`。
+- 写了一部分 Table 和 Database 的功能。
+
+## 2024-11-23
+
+- 修 Parser 的 Bug（后期 80% 的问题都是 Parser 导致的）。
+- 写完了 Table 和 Database。
+- Version 1.0！
+- 下一步：
+  - SQL 输入里注释的支持。
+  - 报错信息支持文件行号。
