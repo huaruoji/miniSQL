@@ -1,10 +1,9 @@
 name: C++ CI/CD
 
-# 添加权限配置
 permissions:
-  contents: write    # 这允许工作流创建releases
-  issues: write     # 如果需要在release时创建issues
-  pull-requests: write  # 如果需要在release时创建PR
+  contents: write
+  issues: write
+  pull-requests: write
 
 on:
   push:
@@ -16,51 +15,107 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false  # 允许某个平台失败的情况下继续其他平台的构建
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: windows-latest
+            exe_name: minidb.exe
+            artifact_name: minidb-windows
+          - os: ubuntu-latest
+            exe_name: minidb
+            artifact_name: minidb-linux
+          - os: macos-latest
+            exe_name: minidb
+            artifact_name: minidb-macos
     
     steps:
     - uses: actions/checkout@v3
       with:
-        fetch-depth: 0   # 确保能获取所有的tag信息
-    
-    - name: Install dependencies
+        fetch-depth: 0
+
+    - name: Install dependencies (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
         sudo apt-get install -y build-essential cmake
-        
+
+    - name: Install dependencies (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install cmake
+
     - name: Configure CMake
       run: |
         mkdir build
         cd build
         cmake ..
-        
+      
     - name: Build
+      working-directory: ./build
       run: |
-        cd build
-        make
-        
+        cmake --build . --config Release
+
     - name: Run tests
+      working-directory: ./build
       run: |
-        cd build
-        ctest --output-on-failure
-        
-    - name: Create Release
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: softprops/action-gh-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        files: |
-          build/minidb
-          LICENSE
-          README.md
-        draft: false
-        prerelease: false
-        generate_release_notes: true
+        ctest -C Release --output-on-failure
+
+    - name: Prepare Release Asset
+      shell: bash
+      run: |
+        mkdir release-asset
+        if [ "${{ matrix.os }}" = "windows-latest" ]; then
+          cp build/Release/${{ matrix.exe_name }} release-asset/
+        else
+          cp build/${{ matrix.exe_name }} release-asset/
+        fi
         
     - name: Upload artifacts
-      if: startsWith(github.ref, 'refs/tags/')
       uses: actions/upload-artifact@v3
       with:
-        name: binaries
-        path: build/minidb
+        name: ${{ matrix.artifact_name }}
+        path: release-asset/${{ matrix.exe_name }}
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+
+      - name: Display structure of downloaded files
+        run: ls -R artifacts/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: |
+            artifacts/minidb-windows/minidb.exe
+            artifacts/minidb-linux/minidb
+            artifacts/minidb-macos/minidb
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          name: Release ${{ github.ref_name }}
+          body: |
+            ## MinidDB Release ${{ github.ref_name }}
+            
+            ### Downloads
+            - Windows: `minidb.exe`
+            - Linux: `minidb`
+            - macOS: `minidb`
+            
+            ### SHA256 Checksums
+            ```
+            ${{ hashFiles('artifacts/minidb-windows/minidb.exe') }}  minidb.exe
+            ${{ hashFiles('artifacts/minidb-linux/minidb') }}  minidb (Linux)
+            ${{ hashFiles('artifacts/minidb-macos/minidb') }}  minidb (macOS)
+            ```
