@@ -52,22 +52,20 @@ int main(int argc, char *argv[]) {
       std::cerr << "Successfully parsed statement\n";
     }
   } catch (const ArgumentError &e) {
-    std::cerr << "Error: " << e.what() << "\n"
-              << "Usage: "
-              << "minidb"
-              << " <input.sql> <output.txt>\n";
+    std::cerr << "Argument Error: " << e.what() << "\n"
+              << "Usage: minidb <input.sql> <output.txt>\n";
     return EXIT_FAILURE;
   } catch (const FileError &e) {
-    std::cerr << "Error: " << e.what() << "\n";
+    std::cerr << "File Error: " << e.what() << "\n";
     return EXIT_FAILURE;
   } catch (const DatabaseError &e) {
-    std::cerr << "Error: " << e.what() << "\n";
+    std::cerr << "Database Error: " << e.what() << "\n";
     return EXIT_FAILURE;
   } catch (const TableError &e) {
-    std::cerr << "Error: " << e.what() << "\n";
+    std::cerr << "Table Error: " << e.what() << "\n";
     return EXIT_FAILURE;
   } catch (const ParseError &e) {
-    std::cerr << "Error: " << e.what() << "\n";
+    std::cerr << "Parse Error: " << e.what() << "\n";
     return EXIT_FAILURE;
   } catch (const std::exception &e) {
     std::cerr << "Unexpected Error: " << e.what() << "\n";
