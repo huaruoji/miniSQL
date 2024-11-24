@@ -18,7 +18,7 @@ jobs:
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false  # 允许某个平台失败的情况下继续其他平台的构建
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         include:
@@ -67,18 +67,26 @@ jobs:
     - name: Prepare Release Asset
       shell: bash
       run: |
-        mkdir release-asset
+        mkdir -p release-asset
         if [ "${{ matrix.os }}" = "windows-latest" ]; then
           cp build/Release/${{ matrix.exe_name }} release-asset/
         else
           cp build/${{ matrix.exe_name }} release-asset/
+        fi
+        cd release-asset
+        if [ "${{ matrix.os }}" = "windows-latest" ]; then
+          7z a -tzip minidb-windows.zip ${{ matrix.exe_name }}
+        else
+          tar czf ${{ matrix.artifact_name }}.tar.gz ${{ matrix.exe_name }}
         fi
         
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
         name: ${{ matrix.artifact_name }}
-        path: release-asset/${{ matrix.exe_name }}
+        path: |
+          release-asset/*.zip
+          release-asset/*.tar.gz
 
   release:
     needs: build
@@ -92,15 +100,22 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R artifacts/
 
+      - name: Rename and prepare assets
+        run: |
+          mkdir release_files
+          cp artifacts/minidb-windows/minidb-windows.zip release_files/
+          cp artifacts/minidb-linux/minidb-linux.tar.gz release_files/
+          cp artifacts/minidb-macos/minidb-macos.tar.gz release_files/
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: |
-            artifacts/minidb-windows/minidb.exe
-            artifacts/minidb-linux/minidb
-            artifacts/minidb-macos/minidb
+            release_files/minidb-windows.zip
+            release_files/minidb-linux.tar.gz
+            release_files/minidb-macos.tar.gz
           draft: false
           prerelease: false
           generate_release_notes: true
@@ -109,13 +124,6 @@ jobs:
             ## MinidDB Release ${{ github.ref_name }}
             
             ### Downloads
-            - Windows: `minidb.exe`
-            - Linux: `minidb`
-            - macOS: `minidb`
-            
-            ### SHA256 Checksums
-            ```
-            ${{ hashFiles('artifacts/minidb-windows/minidb.exe') }}  minidb.exe
-            ${{ hashFiles('artifacts/minidb-linux/minidb') }}  minidb (Linux)
-            ${{ hashFiles('artifacts/minidb-macos/minidb') }}  minidb (macOS)
-            ```
+            - Windows: `minidb-windows.zip`
+            - Linux: `minidb-linux.tar.gz`
+            - macOS: `minidb-macos.tar.gz`
