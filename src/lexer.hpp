@@ -11,12 +11,15 @@ public:
         current_line(start_line) {
     std::string current_string;
     bool parsing_str_literal = false;
+    bool parsing_nagetive_number = false;
     for (size_t i = 0; i < input.length(); ++i) {
       char c = input[i];
-      auto createToken = [&]() {
-        if (!current_string.empty())
+      auto createToken = [&](bool par = false) {
+        if (!current_string.empty()) {
           tokens.push_back(Token(recognizeToken(current_string).type,
-                                 current_string, current_line));
+                                 (par ? "-" : "") + current_string,
+                                 current_line));
+        }
         current_string.clear();
       };
 
@@ -35,7 +38,7 @@ public:
         } else
           parsing_str_literal = true;
       } else if (c == '(' || c == ')' || c == ',' || c == ';' || c == '>' ||
-                 c == '<' || c == '*' || c == '+' || c == '-' ||
+                 c == '<' || c == '*' || c == '+' ||
                  (c == '.' && !std::all_of(current_string.begin(),
                                            current_string.end(), ::isdigit))) {
         createToken();
@@ -45,8 +48,16 @@ public:
         createToken();
         tokens.push_back(Token(TokenType::INEQUALS, "!=", current_line));
         ++i;
+      } else if (c == '-') {
+        if (i + 1 < input.length() && std::isdigit(input[i + 1])) {
+          parsing_nagetive_number = true;
+        } else {
+          createToken();
+          tokens.push_back(Token(recognizeToken(std::string(1, c)).type,
+                                 std::string(1, c), current_line));
+        }
       } else if (std::isspace(c) && !parsing_str_literal) {
-        createToken();
+        createToken(parsing_nagetive_number);
       } else {
         current_string += c;
       }

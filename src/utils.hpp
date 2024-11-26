@@ -184,14 +184,17 @@ struct Token {
       : type(t), value(v), line_number(line) {}
 };
 
-inline Token recognizeToken(const std::string &token) {
+inline Token recognizeToken(std::string token) {
   if (TOKEN_MAP.find(token) != TOKEN_MAP.end()) {
     return Token(TOKEN_MAP.at(token), token);
   }
 
   // Check if token is an integer literal
   bool is_integer = true;
-  for (char c : token) {
+  for (size_t i = 0; i < token.length(); i++) {
+    char c = token[i];
+    if (i == 0 && c == '-')
+      continue;
     if (!std::isdigit(c)) {
       is_integer = false;
       break;
@@ -206,6 +209,8 @@ inline Token recognizeToken(const std::string &token) {
   int decimal_count = 0;
   for (size_t i = 0; i < token.length(); i++) {
     char c = token[i];
+    if (i == 0 && c == '-')
+      continue;
     if (c == '.') {
       ++decimal_count;
     } else if (!std::isdigit(c)) {
