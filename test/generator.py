@@ -49,7 +49,7 @@ def generate_select(table_name, columns):
     return f"SELECT {', '.join(selected_cols)} FROM {table_name};\n"
 
 def generate_test_file(num_tables=5, num_inserts_per_table=1000):
-    output_dir = "test_cases"
+    output_dir = "test"
     os.makedirs(output_dir, exist_ok=True)
     
     filename = os.path.join(output_dir, f"large_test_{random_string(6)}.sql")
