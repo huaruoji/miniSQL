@@ -52,13 +52,8 @@ int main(int argc, char *argv[]) {
       std::cerr << "Successfully parsed statement\n";
     }
   } catch (const ArgumentError &e) {
-<<<<<<< HEAD
-    std::cerr << "Argument Error: " << e.what() << "\n"
-              << "Usage: minidb <input.sql> <output.txt>\n";
-=======
-    std::cerr << "Error: " << e.what() << "\n"
+    std::cerr << "ArgumentError: " << e.what() << "\n"
               << "Usage: minidb <input_file.sql> <output_file.csv>\n";
->>>>>>> claude-reconstruct
     return EXIT_FAILURE;
   } catch (const FileError &e) {
     std::cerr << "File Error: " << e.what() << "\n";
