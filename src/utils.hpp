@@ -16,8 +16,9 @@ template <typename Head, typename... Tail> void debug_out(Head H, Tail... T) {
   std::cerr << ' ' << H;
   debug_out(T...);
 }
-#ifdef HRJ
-#define debug(...) std::cerr << '[', __VA_ARGS__ << "]:", debug_out(__VA_ARGS__)
+#ifdef DEBUG
+#define debug(...)                                                             \
+  std::cerr << '[' << #__VA_ARGS__ << "]:", debug_out(__VA_ARGS__)
 #else
 #define debug(...)
 #endif
@@ -351,6 +352,7 @@ inline Value convertTokenToValue(const Token &token) {
   if (token.type == TokenType::INTEGER_LITERAL) {
     return std::stoi(token.value);
   } else if (token.type == TokenType::FLOAT_LITERAL) {
+    // debug(token.value);
     return std::stod(token.value);
   }
   return token.value; // For STRING_LITERAL and other types
@@ -398,5 +400,25 @@ inline std::ostream &operator<<(std::ostream &os, const TokenType &type) {
   } else {
     os << "UNKNOWN_TOKEN_TYPE";
   }
+  return os;
+}
+
+// Add stream output operator for Value
+inline std::ostream &operator<<(std::ostream &os, const Value &value) {
+  std::visit([&os](const auto &v) { os << v; }, value);
+  return os;
+}
+
+// Add stream output operator for vector of Value
+inline std::ostream &operator<<(std::ostream &os,
+                                const std::vector<Value> &values) {
+  os << "[";
+  for (size_t i = 0; i < values.size(); ++i) {
+    os << values[i];
+    if (i < values.size() - 1) {
+      os << ", ";
+    }
+  }
+  os << "]";
   return os;
 }

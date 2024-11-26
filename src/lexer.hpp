@@ -14,13 +14,16 @@ public:
     bool parsing_nagetive_number = false;
     for (size_t i = 0; i < input.length(); ++i) {
       char c = input[i];
-      auto createToken = [&](bool par = false) {
+      auto createToken = [&]() {
+        // debug(parsing_nagetive_number);
         if (!current_string.empty()) {
-          tokens.push_back(Token(recognizeToken(current_string).type,
-                                 (par ? "-" : "") + current_string,
-                                 current_line));
+          tokens.push_back(
+              Token(recognizeToken(current_string).type,
+                    (parsing_nagetive_number ? "-" : "") + current_string,
+                    current_line));
         }
         current_string.clear();
+        parsing_nagetive_number = false;
       };
 
       if (c == '\n') {
@@ -49,6 +52,7 @@ public:
         tokens.push_back(Token(TokenType::INEQUALS, "!=", current_line));
         ++i;
       } else if (c == '-') {
+        // debug(isdigit(input[i + 1]));
         if (i + 1 < input.length() && std::isdigit(input[i + 1])) {
           parsing_nagetive_number = true;
         } else {
@@ -57,7 +61,7 @@ public:
                                  std::string(1, c), current_line));
         }
       } else if (std::isspace(c) && !parsing_str_literal) {
-        createToken(parsing_nagetive_number);
+        createToken();
       } else {
         current_string += c;
       }
@@ -67,6 +71,13 @@ public:
       tokens.push_back(Token(recognizeToken(current_string).type,
                              current_string, current_line));
     }
+
+#ifdef DEBUG
+    for (const auto &token : tokens) {
+      std::cout << token.value << ' ';
+    }
+    std::cout << std::endl;
+#endif
   }
 
   Token getNextToken() {

@@ -1,82 +1,123 @@
-### Supporting Data Types
+### 1. 创建数据库
+```sql
+CREATE DATABASE database_name;
+```
+例如：
+```sql
+CREATE DATABASE university;
+```
 
-- INTEGER
-- FLOAT
-- TEXT
+### 2. 使用数据库
+```sql
+USE DATABASE database_name;
+```
+例如：
+```sql
+USE DATABASE university;
+```
 
-### Syntax of miniSQL
+### 3. 创建表
+```sql
+CREATE TABLE table_name (
+    column1 datatype,
+    column2 datatype,
+    ...
+);
+```
+例如：
+```sql
+CREATE TABLE students (
+    id INTEGER,
+    name TEXT,
+    gpa FLOAT
+);
+```
 
-#### 2.1 Create Database and Use Database
-- **Create Database**
-  ```sql
-  CREATE DATABASE database_name;
-  ```
+### 4. 插入数据
+```sql
+INSERT INTO table_name VALUES (value1, value2, ...);
+```
+例如：
+```sql
+INSERT INTO students VALUES (1001, 'John Smith', 3.50);
+```
 
-- **Use Database**
-  ```sql
-  USE DATABASE database_name;
-  ```
+### 5. 查询数据
+```sql
+SELECT column1, column2, ... FROM table_name WHERE condition;
+```
+例如：
+```sql
+SELECT * FROM students;
+SELECT id, name FROM students;
+SELECT name, gpa FROM students WHERE gpa > 3.50;
+```
 
-#### 2.2 Create Tables
-- **Create Table**
-  ```sql
-  CREATE TABLE table_name (
-      column1_name column1_type,
-      column2_name column2_type,
-      column3_name column3_type,
-      ...
-  );
-  ```
+### 6. 更新数据
+```sql
+UPDATE table_name SET column1 = value1, column2 = value2, ... WHERE condition;
+```
+例如：
+```sql
+UPDATE students SET gpa = 3.60 WHERE id = 1003;
+UPDATE students SET gpa = gpa + 0.10, name = 'Robert Wilson' WHERE id = 1003;
+```
 
-#### 2.3 Drop Tables
-- **Drop Table**
-  ```sql
-  DROP TABLE table_name;
-  ```
+注意 SET 后的条件最多包含一个 operator，两个 operands，另外 operands 除了字面量只可能为该 column 自己。
 
-#### 2.4 Data Insertion
-- **Insert Into**
-  ```sql
-  INSERT INTO table_name VALUES (value1, value2, ...);
-  ```
+### 7. 删除数据
+```sql
+DELETE FROM table_name WHERE condition;
+```
+例如：
+```sql
+DELETE FROM enrollments WHERE grade < 3.50;
+DELETE FROM students WHERE gpa < 3.00;
+```
 
-#### 2.5 Data Query: Basics
-- **Select Specific Columns**
-  ```sql
-  SELECT column1, column2, ... FROM table_name;
-  ```
+### 8. 删除表
+```sql
+DROP TABLE table_name;
+```
+例如：
+```sql
+DROP TABLE enrollments;
+DROP TABLE courses;
+DROP TABLE students;
+```
 
-- **Select All Columns**
-  ```sql
-  SELECT * FROM table_name;
-  ```
+### 9. 连接查询
+```sql
+SELECT table1.column1, table2.column2
+FROM table1
+INNER JOIN table2 ON table1.column = table2.column;
+```
+例如：
+```sql
+SELECT students.name, enrollments.grade
+FROM students
+INNER JOIN enrollments ON students.id = enrollments.student_id;
+```
 
-#### 2.6 Data Query: "Where" Clause
-- **Select with Where**
-  ```sql
-  SELECT column1, column2 FROM table_name WHERE condition1 AND/OR condition2;
-  ```
+### 10. 创建新的数据库和表
+```sql
+CREATE DATABASE new_database_name;
+USE DATABASE new_database_name;
 
-#### 2.7 Data Query: "Inner Join" Clause
-- **Inner Join**
-  ```sql
-  SELECT table1.column1, table2.column1
-  FROM table1
-  INNER JOIN table2
-  ON table1.X = table2.Y;
-  ```
+CREATE TABLE new_table_name (
+    column1 datatype,
+    column2 datatype,
+    ...
+);
+```
+例如：
+```sql
+CREATE DATABASE school;
+USE DATABASE school;
 
-#### 2.8 Data Update
-- **Update**
-  ```sql
-  UPDATE table_name
-  SET column1 = new_value1, column2 = new_value2, ...
-  WHERE condition;
-  ```
-
-#### 2.9 Data Deletion
-- **Delete**
-  ```sql
-  DELETE FROM table_name
-  WHERE condition;
-  ```
+CREATE TABLE students (
+    id INTEGER,
+    name TEXT,
+    gpa FLOAT
+);
+```

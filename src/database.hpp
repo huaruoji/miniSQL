@@ -32,7 +32,7 @@ public:
     }
     case SQLStatementType::INSERT: {
       auto insert_stmt = static_cast<InsertStatement *>(stmt);
-      debug(insert_stmt->table_name, insert_stmt->values.size());
+      // debug(insert_stmt->table_name, insert_stmt->values.size());
       if (tables.find(insert_stmt->table_name) == tables.end()) {
         throw DatabaseError("Table does not exist", insert_stmt->line_number);
       }
