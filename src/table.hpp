@@ -323,6 +323,8 @@ private:
       switch (condition_type) {
       case TokenType::EQUALS:
         return row_val == val;
+      case TokenType::INEQUALS:
+        return row_val != val;
       case TokenType::LESS_THAN:
         return row_val < val;
       case TokenType::GREATER_THAN:
@@ -337,6 +339,8 @@ private:
       switch (condition_type) {
       case TokenType::EQUALS:
         return row_val == val;
+      case TokenType::INEQUALS:
+        return row_val != val;
       case TokenType::LESS_THAN:
         return row_val < val;
       case TokenType::GREATER_THAN:
@@ -351,6 +355,8 @@ private:
       switch (condition_type) {
       case TokenType::EQUALS:
         return row_val == val;
+      case TokenType::INEQUALS:
+        return row_val != val;
       default:
         throw TableError("Invalid condition type");
       }

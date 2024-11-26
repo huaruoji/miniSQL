@@ -39,8 +39,7 @@ public:
 class SQLError : public std::runtime_error {
 public:
   explicit SQLError(const std::string &message, int line = 0)
-      : std::runtime_error("Line " + std::to_string(line) + ": " + message),
-        line_number(line) {}
+      : std::runtime_error(message), line_number(line) {}
   int getLineNumber() const { return line_number; }
 
 protected:
@@ -50,19 +49,23 @@ protected:
 class ParseError : public SQLError {
 public:
   explicit ParseError(const std::string &message, int line = 0)
-      : SQLError(message, line) {}
+      : SQLError("Parse error at line " + std::to_string(line) + ": " + message,
+                 line) {}
 };
 
 class DatabaseError : public SQLError {
 public:
   explicit DatabaseError(const std::string &message, int line = 0)
-      : SQLError(message, line) {}
+      : SQLError("Database error at line " + std::to_string(line) + ": " +
+                     message,
+                 line) {}
 };
 
 class TableError : public SQLError {
 public:
   explicit TableError(const std::string &message, int line = 0)
-      : SQLError(message, line) {}
+      : SQLError("Table error at line " + std::to_string(line) + ": " + message,
+                 line) {}
 };
 
 // Token types and value types
@@ -101,6 +104,7 @@ enum class TokenType {
   LEFT_PAREN,
   RIGHT_PAREN,
   EQUALS,
+  INEQUALS,
   GREATER_THAN,
   LESS_THAN,
   DOT,
@@ -126,7 +130,7 @@ const std::unordered_map<std::string, TokenType> TOKEN_MAP = {
     {"=", TokenType::EQUALS},      {">", TokenType::GREATER_THAN},
     {"<", TokenType::LESS_THAN},   {".", TokenType::DOT},
     {"*", TokenType::ASTERISK},    {"+", TokenType::PLUS},
-    {"-", TokenType::MINUS},
+    {"-", TokenType::MINUS},       {"!=", TokenType::INEQUALS},
 };
 
 const std::unordered_map<TokenType, std::string> TOKEN_STR = {
@@ -168,6 +172,7 @@ const std::unordered_map<TokenType, std::string> TOKEN_STR = {
     {TokenType::EOF_TOKEN, "EOF_TOKEN"},
     {TokenType::PLUS, "PLUS"},
     {TokenType::MINUS, "MINUS"},
+    {TokenType::INEQUALS, "INEQUALS"},
 };
 
 struct Token {
@@ -265,9 +270,9 @@ struct ColumnDefinition {
 struct Statement {
   std::string content;
   int start_line;
-  
-  Statement(const std::string& content, int line) 
-    : content(content), start_line(line) {}
+
+  Statement(const std::string &content, int line)
+      : content(content), start_line(line) {}
 };
 
 class FileWriter {
@@ -358,7 +363,7 @@ inline std::vector<Statement> splitStatements(std::ifstream &input_file) {
     if (ch == '\n') {
       current_line++;
     }
-    
+
     current_statement += ch;
     if (ch == ';' && !current_statement.empty()) {
       statements.emplace_back(current_statement, statement_start_line);

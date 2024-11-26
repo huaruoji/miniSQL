@@ -67,7 +67,8 @@ public:
       auto inner_join_stmt = static_cast<InnerJoinStatement *>(stmt);
       if (tables.find(inner_join_stmt->table_name_a) == tables.end() ||
           tables.find(inner_join_stmt->table_name_b) == tables.end()) {
-        throw DatabaseError("Table does not exist", inner_join_stmt->line_number);
+        throw DatabaseError("Table does not exist",
+                            inner_join_stmt->line_number);
       }
       tables[inner_join_stmt->table_name_a]->innerJoin(
           *inner_join_stmt, *tables[inner_join_stmt->table_name_b]);
