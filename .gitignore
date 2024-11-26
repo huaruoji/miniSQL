@@ -24,4 +24,10 @@ CMakePresets.json
 
 # Output files
 output.txt
-output.csv 
+output.csv
+
+# Test directory - ignore all except specific files
+test/*
+!test/verify.py
+!test/syntax.md
+!test/generator.py
