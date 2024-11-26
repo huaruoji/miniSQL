@@ -200,7 +200,6 @@ private:
     }
     do {
       statement->values.push_back(convertTokenToValue(current_token));
-      std::cerr << current_token.value << std::endl;
       if (!(consume(TokenType::STRING_LITERAL) ||
             consume(TokenType::INTEGER_LITERAL) ||
             consume(TokenType::FLOAT_LITERAL))) {
@@ -336,7 +335,7 @@ private:
     if (!consume(TokenType::IDENTIFIER)) {
       throw ParseError("Expected column name after DOT");
     }
-    std::cerr << current_token.type << ' ' << current_token.value << '\n';
+    debug(current_token.type, current_token.value);
     if (!consume(TokenType::FROM)) {
       throw ParseError("Expected FROM after column name");
     }

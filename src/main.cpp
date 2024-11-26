@@ -31,8 +31,6 @@ int main(int argc, char *argv[]) {
     for (const auto &statement : statements) {
       std::unique_ptr<SQLStatement> parsed_statement =
           Parser(statement).parse();
-      std::cerr << SQL_STATEMENT_TYPE_STR.find(parsed_statement->type)->second
-                << "\n";
       if (parsed_statement->type == SQLStatementType::CREATE_DATABASE) {
         if (databases.find(parsed_statement->getDatabaseName()) !=
             databases.end()) {

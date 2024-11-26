@@ -19,7 +19,6 @@ public:
 
   void insert(const std::vector<Value> &row) {
     // Validate number of values matches number of columns
-    std::cerr << row.size() << ' ' << columns.size() << std::endl;
     if (row.size() != columns.size()) {
       throw TableError("Number of values does not match number of columns");
     }
@@ -242,12 +241,6 @@ public:
       bool should_delete = true;
 
       // Check first condition
-      std::cerr << 114514;
-      std::cerr << stmt.where_condition->column_name_a << ' ';
-      std::cerr << stmt.where_condition->condition_type_a << ' ';
-      std::cerr << stmt.where_condition->value_a.type << '\n';
-      std::cerr << stmt.where_condition->logic_operator << ' ';
-
       should_delete = compareValues(
           stmt.where_condition->column_name_a,
           stmt.where_condition->condition_type_a,
@@ -269,7 +262,6 @@ public:
       }
 
       // Remove the row if it matches the condition(s)
-      std::cerr << should_delete << '\n';
       if (should_delete) {
         it = rows.erase(it);
       } else {
@@ -342,7 +334,6 @@ private:
                std::holds_alternative<double>(row_value)) {
       double val = std::get<double>(value);
       double row_val = std::get<double>(row_value);
-      std::cerr << val << ' ' << row_val << std::endl;
       switch (condition_type) {
       case TokenType::EQUALS:
         return row_val == val;

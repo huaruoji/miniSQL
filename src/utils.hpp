@@ -9,6 +9,19 @@
 #include <variant>
 #include <vector>
 
+// Debugging macro
+
+void debug_out() { std::cerr << '\n'; }
+template <typename Head, typename... Tail> void debug_out(Head H, Tail... T) {
+  std::cerr << ' ' << H;
+  debug_out(T...);
+}
+#ifdef HRJ
+#define debug(...) std::cerr << '[', __VA_ARGS__ << "]:", debug_out(__VA_ARGS__)
+#else
+#define debug(...)
+#endif
+
 // Error classes
 
 class ArgumentError : public std::runtime_error {

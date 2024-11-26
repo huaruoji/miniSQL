@@ -13,4 +13,9 @@ set(SOURCES
 add_executable(minidb ${SOURCES})
 
 # Include directories
-target_include_directories(minidb PRIVATE src) 
+target_include_directories(minidb PRIVATE src)
+
+# Define debug macro for Debug build
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_compile_definitions(minidb PRIVATE DEBUG)
+endif()

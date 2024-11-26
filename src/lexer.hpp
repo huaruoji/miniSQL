@@ -39,20 +39,6 @@ public:
     if (!current_string.empty()) {
       tokens.push_back(recognizeToken(current_string));
     }
-    for (const auto &token : tokens) {
-      assert(!token.value.empty());
-      std::cerr << token.value << ' ';
-    }
-    std::cerr << std::endl;
-    for (const auto &token : tokens) {
-      auto it = TOKEN_STR.find(token.type);
-      if (it != TOKEN_STR.end()) {
-        std::cerr << it->second << ' ';
-      } else {
-        std::cerr << "UNKNOWN_TOKEN_TYPE" << ' ';
-      }
-    }
-    std::cerr << std::endl;
   }
 
   Token getNextToken() {
