@@ -7,10 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Add source files
 set(SOURCES
     src/main.cpp
-    src/parser.cpp
-    src/lexer.cpp
-    src/database.cpp
-    src/table.cpp
 )
 
 # Create executable
