@@ -577,14 +577,11 @@ minisql/
 ├── src/
 │   ├── main.cpp
 │   ├── parser.hpp
-│   ├── parser.cpp
 │   ├── lexer.hpp
-│   ├── lexer.cpp
 │   ├── database.hpp
-│   ├── database.cpp
 │   ├── table.hpp
-│   ├── table.cpp
 │   ├── utils.hpp
+│   ├── sql_statement.hpp
 └── test/
     └── test.sql
 ```
