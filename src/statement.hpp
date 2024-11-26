@@ -7,6 +7,9 @@
 
 struct SQLStatement {
   SQLStatementType type;
+  int line_number;
+
+  SQLStatement() : line_number(0) {}
   virtual ~SQLStatement() = default;
   virtual std::string getDatabaseName() const { return ""; }
 };

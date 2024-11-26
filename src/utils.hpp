@@ -36,22 +36,33 @@ public:
       : std::runtime_error(message) {}
 };
 
-class DatabaseError : public std::runtime_error {
+class SQLError : public std::runtime_error {
 public:
-  explicit DatabaseError(const std::string &message)
-      : std::runtime_error(message) {}
+  explicit SQLError(const std::string &message, int line = 0)
+      : std::runtime_error("Line " + std::to_string(line) + ": " + message),
+        line_number(line) {}
+  int getLineNumber() const { return line_number; }
+
+protected:
+  int line_number;
 };
 
-class ParseError : public std::runtime_error {
+class ParseError : public SQLError {
 public:
-  explicit ParseError(const std::string &message)
-      : std::runtime_error(message) {}
+  explicit ParseError(const std::string &message, int line = 0)
+      : SQLError(message, line) {}
 };
 
-class TableError : public std::runtime_error {
+class DatabaseError : public SQLError {
 public:
-  explicit TableError(const std::string &message)
-      : std::runtime_error(message) {}
+  explicit DatabaseError(const std::string &message, int line = 0)
+      : SQLError(message, line) {}
+};
+
+class TableError : public SQLError {
+public:
+  explicit TableError(const std::string &message, int line = 0)
+      : SQLError(message, line) {}
 };
 
 // Token types and value types
@@ -162,9 +173,10 @@ const std::unordered_map<TokenType, std::string> TOKEN_STR = {
 struct Token {
   TokenType type;
   std::string value;
+  int line_number;
 
-  Token(TokenType t = TokenType::EOF_TOKEN, std::string v = "")
-      : type(t), value(v) {}
+  Token(TokenType t = TokenType::EOF_TOKEN, std::string v = "", int line = 1)
+      : type(t), value(v), line_number(line) {}
 };
 
 inline Token recognizeToken(const std::string &token) {
@@ -250,6 +262,14 @@ struct ColumnDefinition {
   TokenType type;
 };
 
+struct Statement {
+  std::string content;
+  int start_line;
+  
+  Statement(const std::string& content, int line) 
+    : content(content), start_line(line) {}
+};
+
 class FileWriter {
 private:
   std::ofstream file;
@@ -326,17 +346,24 @@ inline Value convertTokenToValue(const Token &token) {
   return token.value; // For STRING_LITERAL and other types
 }
 
-inline std::vector<std::string> splitStatements(std::ifstream &input_file) {
-  std::vector<std::string> statements;
+inline std::vector<Statement> splitStatements(std::ifstream &input_file) {
+  std::vector<Statement> statements;
   std::string current_statement;
+  int current_line = 1;
+  int statement_start_line = 1;
   char ch;
 
   // Read file character by character and build statements
   while (input_file.get(ch)) {
+    if (ch == '\n') {
+      current_line++;
+    }
+    
     current_statement += ch;
     if (ch == ';' && !current_statement.empty()) {
-      statements.push_back(current_statement);
+      statements.emplace_back(current_statement, statement_start_line);
       current_statement.clear();
+      statement_start_line = current_line;
     }
   }
 
@@ -347,7 +374,7 @@ inline std::vector<std::string> splitStatements(std::ifstream &input_file) {
       empty_statement = false;
   }
   if (!empty_statement) {
-    throw ParseError("Unterminated statement");
+    throw ParseError("Unterminated statement", current_line);
   }
 
   return statements;

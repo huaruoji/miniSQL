@@ -16,7 +16,7 @@ public:
     case SQLStatementType::CREATE_TABLE: {
       auto create_stmt = static_cast<CreateTableStatement *>(stmt);
       if (tables.find(create_stmt->table_name) != tables.end()) {
-        throw DatabaseError("Table already exists");
+        throw DatabaseError("Table already exists", create_stmt->line_number);
       }
       tables[create_stmt->table_name] = std::make_unique<Table>(
           create_stmt->table_name, create_stmt->columns);
@@ -25,7 +25,7 @@ public:
     case SQLStatementType::DROP_TABLE: {
       auto drop_stmt = static_cast<DropTableStatement *>(stmt);
       if (tables.find(drop_stmt->table_name) == tables.end()) {
-        throw DatabaseError("Table does not exist");
+        throw DatabaseError("Table does not exist", drop_stmt->line_number);
       }
       tables.erase(drop_stmt->table_name);
       break;
@@ -34,7 +34,7 @@ public:
       auto insert_stmt = static_cast<InsertStatement *>(stmt);
       debug(insert_stmt->table_name, insert_stmt->values.size());
       if (tables.find(insert_stmt->table_name) == tables.end()) {
-        throw DatabaseError("Table does not exist");
+        throw DatabaseError("Table does not exist", insert_stmt->line_number);
       }
       tables[insert_stmt->table_name]->insert(insert_stmt->values);
       break;
@@ -42,7 +42,7 @@ public:
     case SQLStatementType::SELECT: {
       auto select_stmt = static_cast<SelectStatement *>(stmt);
       if (tables.find(select_stmt->table_name) == tables.end()) {
-        throw DatabaseError("Table does not exist");
+        throw DatabaseError("Table does not exist", select_stmt->line_number);
       }
       tables[select_stmt->table_name]->select(*select_stmt);
       break;
@@ -50,7 +50,7 @@ public:
     case SQLStatementType::UPDATE: {
       auto update_stmt = static_cast<UpdateStatement *>(stmt);
       if (tables.find(update_stmt->table_name) == tables.end()) {
-        throw DatabaseError("Table does not exist");
+        throw DatabaseError("Table does not exist", update_stmt->line_number);
       }
       tables[update_stmt->table_name]->update(*update_stmt);
       break;
@@ -58,7 +58,7 @@ public:
     case SQLStatementType::DELETE: {
       auto delete_stmt = static_cast<DeleteStatement *>(stmt);
       if (tables.find(delete_stmt->table_name) == tables.end()) {
-        throw DatabaseError("Table does not exist");
+        throw DatabaseError("Table does not exist", delete_stmt->line_number);
       }
       tables[delete_stmt->table_name]->deleteRows(*delete_stmt);
       break;
@@ -67,14 +67,14 @@ public:
       auto inner_join_stmt = static_cast<InnerJoinStatement *>(stmt);
       if (tables.find(inner_join_stmt->table_name_a) == tables.end() ||
           tables.find(inner_join_stmt->table_name_b) == tables.end()) {
-        throw DatabaseError("Table does not exist");
+        throw DatabaseError("Table does not exist", inner_join_stmt->line_number);
       }
       tables[inner_join_stmt->table_name_a]->innerJoin(
           *inner_join_stmt, *tables[inner_join_stmt->table_name_b]);
       break;
     }
     default:
-      throw DatabaseError("Unknown statement type");
+      throw DatabaseError("Unknown statement type", 0);
     }
   }
 

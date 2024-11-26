@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
     if (!input_file.is_open()) {
       throw FileError("Failed to open input file");
     }
-    const std::vector<std::string> &&statements = splitStatements(input_file);
+    const std::vector<Statement> &&statements = splitStatements(input_file);
 
     // Open output file for writing
     file_writer.open(argv[2]);
@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
     // Parse statements and execute
     for (const auto &statement : statements) {
       std::unique_ptr<SQLStatement> parsed_statement =
-          Parser(statement).parse();
+          Parser(statement.content, statement.start_line).parse();
       if (parsed_statement->type == SQLStatementType::CREATE_DATABASE) {
         if (databases.find(parsed_statement->getDatabaseName()) !=
             databases.end()) {
@@ -56,14 +56,8 @@ int main(int argc, char *argv[]) {
   } catch (const FileError &e) {
     std::cerr << "File Error: " << e.what() << "\n";
     return EXIT_FAILURE;
-  } catch (const DatabaseError &e) {
-    std::cerr << "Database Error: " << e.what() << "\n";
-    return EXIT_FAILURE;
-  } catch (const TableError &e) {
-    std::cerr << "Table Error: " << e.what() << "\n";
-    return EXIT_FAILURE;
-  } catch (const ParseError &e) {
-    std::cerr << "Parse Error: " << e.what() << "\n";
+  } catch (const SQLError &e) {
+    std::cerr << e.what() << "\n";
     return EXIT_FAILURE;
   } catch (const std::exception &e) {
     std::cerr << "Unexpected Error: " << e.what() << "\n";
