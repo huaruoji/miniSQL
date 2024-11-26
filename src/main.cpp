@@ -34,20 +34,28 @@ int main(int argc, char *argv[]) {
       if (parsed_statement->type == SQLStatementType::CREATE_DATABASE) {
         if (databases.find(parsed_statement->getDatabaseName()) !=
             databases.end()) {
-          throw DatabaseError("Database already exists");
+          throw DatabaseError("Database already exists",
+                              parsed_statement->line_number);
         }
         databases[parsed_statement->getDatabaseName()] =
             std::make_unique<Database>(parsed_statement->getDatabaseName());
       } else if (parsed_statement->type == SQLStatementType::USE_DATABASE) {
         if (databases.find(parsed_statement->getDatabaseName()) ==
             databases.end()) {
-          throw DatabaseError("Database does not exist");
+          throw DatabaseError("Database does not exist",
+                              parsed_statement->line_number);
         }
         current_database = databases[parsed_statement->getDatabaseName()].get();
       } else {
+        if (!current_database) {
+          throw DatabaseError("No database selected",
+                              parsed_statement->line_number);
+        }
         current_database->executeStatement(parsed_statement.get());
       }
+#ifdef DEBUG
       std::cerr << "Successfully parsed statement\n";
+#endif
     }
   } catch (const ArgumentError &e) {
     std::cerr << "ArgumentError: " << e.what() << "\n"
