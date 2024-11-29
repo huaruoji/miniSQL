@@ -74,9 +74,9 @@ public:
 
 #ifdef DEBUG
     for (const auto &token : tokens) {
-      std::cout << token.value << ' ';
+      std::cerr << token.value << ' ';
     }
-    std::cout << std::endl;
+    std::cerr << std::endl;
 #endif
   }
 
