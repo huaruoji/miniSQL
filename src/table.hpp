@@ -3,19 +3,28 @@
 #include "statement.hpp"
 #include "utils.hpp"
 #include <algorithm>
+#include <fstream>
 #include <list>
+#include <memory>
 #include <string>
 #include <vector>
+#include <sstream>
 
 class Table {
 public:
   Table(const std::string &name, const std::vector<ColumnDefinition> &columns)
       : name(name), columns(columns) {
-    // Build column index
+    rebuildColumnIndex();
+  }
+
+  void rebuildColumnIndex() {
+    column_index.clear();
     for (size_t i = 0; i < columns.size(); i++) {
       column_index[columns[i].name] = i;
     }
   }
+
+  std::string getName() const { return name; }
 
   void insert(const std::vector<Value> &row) {
     // Validate number of values matches number of columns
@@ -297,6 +306,156 @@ public:
     }
 
     file_writer.write(results);
+  }
+
+  // Helper function to quote string
+  static std::string quoteString(const std::string& str) {
+    return "\"" + str + "\"";
+  }
+
+  // Helper function to read a quoted string
+  static std::string readQuotedString(std::istream& in) {
+    char c;
+    std::string result;
+    
+    // Skip leading whitespace
+    while (in.get(c) && std::isspace(c)) {}
+    in.unget();
+    
+    if (in.peek() != '"') {
+      throw TableError("Expected quoted string");
+    }
+    
+    in.get(); // Skip opening quote
+    while (in.get(c) && c != '"') {
+      result += c;
+    }
+    
+    if (c != '"') {
+      throw TableError("Unterminated quoted string");
+    }
+    
+    return result;
+  }
+
+  void serialize(std::ofstream &out) const {
+    // Write table name
+    out << "TABLE " << quoteString(name) << "\n";
+    
+    // Write columns
+    out << "COLUMNS " << columns.size() << "\n";
+    for (const auto &col : columns) {
+      out << quoteString(col.name) << " " << TOKEN_STR.find(col.type)->second << "\n";
+    }
+    
+    // Write rows
+    out << "ROWS " << rows.size() << "\n";
+    for (const auto &row : rows) {
+      for (size_t i = 0; i < row.size(); ++i) {
+        if (i > 0) out << " ";
+        const auto &value = row[i];
+        if (std::holds_alternative<int>(value)) {
+          out << "INT " << std::get<int>(value);
+        } else if (std::holds_alternative<double>(value)) {
+          out << "FLOAT " << std::get<double>(value);
+        } else if (std::holds_alternative<std::string>(value)) {
+          out << "TEXT " << quoteString(std::get<std::string>(value));
+        }
+      }
+      out << "\n";
+    }
+  }
+
+  static std::unique_ptr<Table> deserialize(std::ifstream &in) {
+    std::string line, word;
+    
+    // Read table name
+    std::getline(in, line);
+    std::istringstream iss(line);
+    iss >> word; // Skip "TABLE"
+    std::string table_name = readQuotedString(iss);
+    
+    // Read columns
+    std::getline(in, line);
+    iss.clear();
+    iss.str(line);
+    iss >> word; // Skip "COLUMNS"
+    size_t num_columns;
+    iss >> num_columns;
+    
+    std::vector<ColumnDefinition> columns;
+    columns.reserve(num_columns);
+    
+    for (size_t i = 0; i < num_columns; ++i) {
+      std::getline(in, line);
+      iss.clear();
+      iss.str(line);
+      
+      ColumnDefinition col;
+      col.name = readQuotedString(iss);
+      std::string type_str;
+      iss >> type_str;
+      
+      // Convert type string to TokenType
+      bool found = false;
+      for (const auto &[token_type, str] : TOKEN_STR) {
+        if (str == type_str) {
+          col.type = token_type;
+          found = true;
+          break;
+        }
+      }
+      
+      if (!found) {
+        throw TableError("Invalid column type: " + type_str);
+      }
+      
+      columns.push_back(col);
+    }
+    
+    // Create table
+    auto table = std::make_unique<Table>(table_name, columns);
+    
+    // Read rows
+    std::getline(in, line);
+    iss.clear();
+    iss.str(line);
+    iss >> word; // Skip "ROWS"
+    size_t num_rows;
+    iss >> num_rows;
+    
+    for (size_t i = 0; i < num_rows; ++i) {
+      std::getline(in, line);
+      iss.clear();
+      iss.str(line);
+      
+      std::vector<Value> row;
+      row.reserve(num_columns);
+      
+      for (size_t j = 0; j < num_columns; ++j) {
+        std::string type;
+        iss >> type;
+        
+        if (type == "INT") {
+          int value;
+          iss >> value;
+          row.push_back(value);
+        } else if (type == "FLOAT") {
+          double value;
+          iss >> value;
+          row.push_back(value);
+        } else if (type == "TEXT") {
+          std::string value = readQuotedString(iss);
+          row.push_back(value);
+        } else {
+          throw TableError("Invalid value type: " + type);
+        }
+      }
+      
+      table->rows.push_back(std::move(row));
+    }
+    
+    return table;
   }
 
 private:

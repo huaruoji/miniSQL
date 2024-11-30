@@ -2,20 +2,43 @@
 #include "parser.hpp"
 #include "statement.hpp"
 #include "utils.hpp"
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 
-FileWriter file_writer;
+OutputWriter file_writer;
+namespace fs = std::filesystem;
+
+void loadDatabases(
+    std::unordered_map<std::string, std::unique_ptr<Database>> &databases,
+    const std::string &data_dir) {
+  if (!fs::exists(data_dir)) {
+    fs::create_directory(data_dir);
+    return;
+  }
+
+  for (const auto &entry : fs::directory_iterator(data_dir)) {
+    if (entry.path().extension() == ".db") {
+      auto db = Database::deserialize(entry.path().string());
+      databases[db->getName()] = std::move(db);
+    }
+  }
+}
 
 int main(int argc, char *argv[]) {
   std::unordered_map<std::string, std::unique_ptr<Database>> databases;
   Database *current_database = nullptr;
+  const std::string data_dir = "data";
+
   try {
     if (argc != 3) {
       throw ArgumentError("Argument number error");
     } else if (std::string(argv[1]).find(".sql") == std::string::npos) {
       throw ArgumentError("Input file must be a SQL file");
     }
+
+    // Load existing databases
+    loadDatabases(databases, data_dir);
 
     // Read input SQL file and split into statements
     std::ifstream input_file(argv[1]);
@@ -38,7 +61,8 @@ int main(int argc, char *argv[]) {
                               parsed_statement->line_number);
         }
         databases[parsed_statement->getDatabaseName()] =
-            std::make_unique<Database>(parsed_statement->getDatabaseName());
+            std::make_unique<Database>(parsed_statement->getDatabaseName(),
+                                       data_dir);
       } else if (parsed_statement->type == SQLStatementType::USE_DATABASE) {
         if (databases.find(parsed_statement->getDatabaseName()) ==
             databases.end()) {

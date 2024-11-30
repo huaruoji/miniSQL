@@ -2,14 +2,28 @@
 #include "statement.hpp"
 #include "table.hpp"
 #include "utils.hpp"
+#include <filesystem>
+#include <fstream>
 #include <memory>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
 
 class Database {
 public:
-  explicit Database(const std::string &name) : name(name) {}
+  explicit Database(const std::string &name,
+                    const std::string &data_dir = "data")
+      : name(name), data_dir(data_dir) {}
+
+  ~Database() {
+    namespace fs = std::filesystem;
+    if (!fs::exists(data_dir)) {
+      fs::create_directory(data_dir);
+    }
+    fs::path db_path = fs::path(data_dir) / (name + ".db");
+    serialize(db_path.string());
+  }
 
   void executeStatement(SQLStatement *stmt) {
     switch (stmt->type) {
@@ -32,7 +46,6 @@ public:
     }
     case SQLStatementType::INSERT: {
       auto insert_stmt = static_cast<InsertStatement *>(stmt);
-      // debug(insert_stmt->table_name, insert_stmt->values.size());
       if (tables.find(insert_stmt->table_name) == tables.end()) {
         throw DatabaseError("Table does not exist", insert_stmt->line_number);
       }
@@ -79,7 +92,72 @@ public:
     }
   }
 
+  std::string getName() const { return name; }
+
+  // Serialize database to a file
+  void serialize(const std::string &filepath) const {
+    std::ofstream out(filepath);
+    if (!out) {
+      throw DatabaseError("Failed to open file for serialization", 0);
+    }
+
+    // Write database name
+    out << "DATABASE " << name << "\n";
+
+    // Write number of tables
+    out << "TABLES " << tables.size() << "\n\n";
+
+    // Write each table
+    for (const auto &[table_name, table] : tables) {
+      table->serialize(out);
+      out << "\n"; // Add a blank line between tables
+    }
+  }
+
+  // Deserialize database from a file
+  static std::unique_ptr<Database> deserialize(const std::string &filepath) {
+    std::ifstream in(filepath);
+    if (!in) {
+      throw DatabaseError("Failed to open file for deserialization", 0);
+    }
+
+    std::string line, word;
+
+    // Read database name
+    std::getline(in, line);
+    std::istringstream iss(line);
+    iss >> word; // Skip "DATABASE"
+    std::string db_name;
+    iss >> db_name;
+
+    // Create database instance
+    auto db = std::make_unique<Database>(db_name);
+
+    // Read number of tables
+    std::getline(in, line);
+    iss.clear();
+    iss.str(line);
+    iss >> word; // Skip "TABLES"
+    size_t num_tables;
+    iss >> num_tables;
+
+    // Skip the blank line
+    std::getline(in, line);
+
+    // Read each table
+    for (size_t i = 0; i < num_tables; ++i) {
+      auto table = Table::deserialize(in);
+      db->tables[table->getName()] = std::move(table);
+
+      // Skip the blank line between tables
+      std::getline(in, line);
+    }
+
+    return db;
+  }
+
 private:
   std::string name;
+  std::string data_dir;
   std::unordered_map<std::string, std::unique_ptr<Table>> tables;
 };

@@ -1,5 +1,6 @@
 #pragma once
 
+// Standard library includes
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -9,13 +10,17 @@
 #include <variant>
 #include <vector>
 
-// Debugging macro
+//-----------------------------------------------------------------------------
+// Debug utilities
+//-----------------------------------------------------------------------------
 
 void debug_out() { std::cerr << '\n'; }
+
 template <typename Head, typename... Tail> void debug_out(Head H, Tail... T) {
   std::cerr << ' ' << H;
   debug_out(T...);
 }
+
 #ifdef DEBUG
 #define debug(...)                                                             \
   std::cerr << '[' << #__VA_ARGS__ << "]:", debug_out(__VA_ARGS__)
@@ -23,7 +28,9 @@ template <typename Head, typename... Tail> void debug_out(Head H, Tail... T) {
 #define debug(...)
 #endif
 
-// Error classes
+//-----------------------------------------------------------------------------
+// Custom exception classes
+//-----------------------------------------------------------------------------
 
 class ArgumentError : public std::runtime_error {
 public:
@@ -69,11 +76,16 @@ public:
                  line) {}
 };
 
-// Token types and value types
+//-----------------------------------------------------------------------------
+// SQL types and tokens
+//-----------------------------------------------------------------------------
 
+// Value type for storing SQL data (can be string, int, or double)
 using Value = std::variant<std::string, int, double>;
+
+// All possible SQL token types
 enum class TokenType {
-  EOF_TOKEN,
+  // Keywords
   CREATE,
   DATABASE,
   USE,
@@ -93,13 +105,19 @@ enum class TokenType {
   ON,
   AND,
   OR,
+
+  // Data types
   INTEGER,
   FLOAT,
   TEXT,
+
+  // Literals and identifiers
   IDENTIFIER,
   INTEGER_LITERAL,
   FLOAT_LITERAL,
   STRING_LITERAL,
+
+  // Operators and punctuation
   COMMA,
   SEMICOLON,
   LEFT_PAREN,
@@ -111,9 +129,13 @@ enum class TokenType {
   DOT,
   ASTERISK,
   PLUS,
-  MINUS
+  MINUS,
+
+  // Special tokens
+  EOF_TOKEN
 };
 
+// Mapping from string to token type (for lexical analysis)
 const std::unordered_map<std::string, TokenType> TOKEN_MAP = {
     {"CREATE", TokenType::CREATE}, {"DATABASE", TokenType::DATABASE},
     {"USE", TokenType::USE},       {"TABLE", TokenType::TABLE},
@@ -131,9 +153,9 @@ const std::unordered_map<std::string, TokenType> TOKEN_MAP = {
     {"=", TokenType::EQUALS},      {">", TokenType::GREATER_THAN},
     {"<", TokenType::LESS_THAN},   {".", TokenType::DOT},
     {"*", TokenType::ASTERISK},    {"+", TokenType::PLUS},
-    {"-", TokenType::MINUS},       {"!=", TokenType::INEQUALS},
-};
+    {"-", TokenType::MINUS},       {"!=", TokenType::INEQUALS}};
 
+// Mapping from token type to string (for error messages and serialization)
 const std::unordered_map<TokenType, std::string> TOKEN_STR = {
     {TokenType::CREATE, "CREATE"},
     {TokenType::DATABASE, "DATABASE"},
@@ -164,18 +186,22 @@ const std::unordered_map<TokenType, std::string> TOKEN_STR = {
     {TokenType::COMMA, "COMMA"},
     {TokenType::SEMICOLON, "SEMICOLON"},
     {TokenType::LEFT_PAREN, "LEFT_PAREN"},
-    {TokenType::RIGHT_PAREN, "LEFT_PAREN"},
+    {TokenType::RIGHT_PAREN, "RIGHT_PAREN"},
     {TokenType::EQUALS, "EQUALS"},
+    {TokenType::INEQUALS, "INEQUALS"},
     {TokenType::GREATER_THAN, "GREATER_THAN"},
     {TokenType::LESS_THAN, "LESS_THAN"},
     {TokenType::DOT, "DOT"},
     {TokenType::ASTERISK, "ASTERISK"},
-    {TokenType::EOF_TOKEN, "EOF_TOKEN"},
     {TokenType::PLUS, "PLUS"},
     {TokenType::MINUS, "MINUS"},
-    {TokenType::INEQUALS, "INEQUALS"},
-};
+    {TokenType::EOF_TOKEN, "EOF_TOKEN"}};
 
+//-----------------------------------------------------------------------------
+// SQL statement types and structures
+//-----------------------------------------------------------------------------
+
+// Token structure for lexical analysis
 struct Token {
   TokenType type;
   std::string value;
@@ -185,47 +211,7 @@ struct Token {
       : type(t), value(v), line_number(line) {}
 };
 
-inline Token recognizeToken(std::string token) {
-  if (TOKEN_MAP.find(token) != TOKEN_MAP.end()) {
-    return Token(TOKEN_MAP.at(token), token);
-  }
-
-  // Check if token is an integer literal
-  bool is_integer = true;
-  for (size_t i = 0; i < token.length(); i++) {
-    char c = token[i];
-    if (i == 0 && c == '-')
-      continue;
-    if (!std::isdigit(c)) {
-      is_integer = false;
-      break;
-    }
-  }
-  if (is_integer) {
-    return Token(TokenType::INTEGER_LITERAL, token);
-  }
-
-  // Check if token is a float literal
-  bool is_float = true;
-  int decimal_count = 0;
-  for (size_t i = 0; i < token.length(); i++) {
-    char c = token[i];
-    if (i == 0 && c == '-')
-      continue;
-    if (c == '.') {
-      ++decimal_count;
-    } else if (!std::isdigit(c)) {
-      is_float = false;
-      break;
-    }
-  }
-  if (is_float && decimal_count == 1) {
-    return Token(TokenType::FLOAT_LITERAL, token);
-  }
-
-  return Token(TokenType::IDENTIFIER, token);
-}
-
+// SQL statement types
 enum class SQLStatementType {
   CREATE_DATABASE,
   USE_DATABASE,
@@ -238,19 +224,7 @@ enum class SQLStatementType {
   INNER_JOIN
 };
 
-const std::unordered_map<SQLStatementType, std::string> SQL_STATEMENT_TYPE_STR =
-    {
-        {SQLStatementType::CREATE_DATABASE, "CREATE_DATABASE"},
-        {SQLStatementType::USE_DATABASE, "USE_DATABASE"},
-        {SQLStatementType::CREATE_TABLE, "CREATE_TABLE"},
-        {SQLStatementType::DROP_TABLE, "DROP_TABLE"},
-        {SQLStatementType::INSERT, "INSERT"},
-        {SQLStatementType::SELECT, "SELECT"},
-        {SQLStatementType::UPDATE, "UPDATE"},
-        {SQLStatementType::DELETE, "DELETE"},
-        {SQLStatementType::INNER_JOIN, "INNER_JOIN"},
-};
-
+// Structure for WHERE conditions in SQL statements
 struct WhereCondition {
   TokenType logic_operator = TokenType::EOF_TOKEN;
   std::string column_name_a;
@@ -261,6 +235,7 @@ struct WhereCondition {
   Token value_b;
 };
 
+// Structure for SET conditions in UPDATE statements
 struct SetCondition {
   std::string column_name_a;
   std::string column_name_b;
@@ -268,25 +243,31 @@ struct SetCondition {
   Token value;
 };
 
+// Structure for column definitions in CREATE TABLE statements
 struct ColumnDefinition {
   std::string name;
   TokenType type;
 };
 
+// Base class for SQL statements
 struct Statement {
   std::string content;
   int start_line;
-
   Statement(const std::string &content, int line)
       : content(content), start_line(line) {}
 };
 
-class FileWriter {
+//-----------------------------------------------------------------------------
+// Output handling
+//-----------------------------------------------------------------------------
+
+// Class for handling output to files
+class OutputWriter {
 private:
   std::ofstream file;
 
 public:
-  explicit FileWriter() = default;
+  explicit OutputWriter() = default;
 
   void open(const std::string &filename) {
     file.open(filename);
@@ -305,9 +286,7 @@ public:
   }
 
   void write(const std::string &data) { file << "\"" << data << "\""; }
-
   void write(int data) { file << data; }
-
   void write(double data) { file << data; }
 
   void write(const Value &data) {
@@ -344,81 +323,120 @@ public:
   }
 };
 
-extern FileWriter file_writer;
+extern OutputWriter file_writer;
 
+//-----------------------------------------------------------------------------
 // Utility functions
+//-----------------------------------------------------------------------------
 
-inline Value convertTokenToValue(const Token &token) {
-  if (token.type == TokenType::INTEGER_LITERAL) {
+// Convert a token to its corresponding value
+Value convertTokenToValue(const Token &token) {
+  switch (token.type) {
+  case TokenType::INTEGER_LITERAL:
     return std::stoi(token.value);
-  } else if (token.type == TokenType::FLOAT_LITERAL) {
-    // debug(token.value);
+  case TokenType::FLOAT_LITERAL:
     return std::stod(token.value);
+  case TokenType::STRING_LITERAL:
+    return token.value;
+  default:
+    throw ParseError("Invalid token type for value conversion");
   }
-  return token.value; // For STRING_LITERAL and other types
 }
 
-inline std::vector<Statement> splitStatements(std::ifstream &input_file) {
+// Split input into individual SQL statements
+std::vector<Statement> splitStatements(std::ifstream &input_file) {
   std::vector<Statement> statements;
   std::string current_statement;
-  int current_line = 1;
-  int statement_start_line = 1;
-  char ch;
+  std::string line;
+  int line_number = 0;
+  int start_line = 1;
 
-  // Read file character by character and build statements
-  while (input_file.get(ch)) {
-    if (ch == '\n') {
-      current_line++;
+  while (std::getline(input_file, line)) {
+    line_number++;
+
+    // Skip empty lines and comments
+    if (line.empty() || line[0] == '#') {
+      continue;
     }
 
-    current_statement += ch;
-    if (ch == ';' && !current_statement.empty()) {
-      statements.emplace_back(current_statement, statement_start_line);
+    // Remove trailing whitespace
+    size_t end = line.find_last_not_of(" \t\r\n");
+    if (end != std::string::npos) {
+      line = line.substr(0, end + 1);
+    }
+
+    current_statement += line;
+
+    // If line ends with semicolon, we have a complete statement
+    if (line.back() == ';') {
+      statements.emplace_back(current_statement, start_line);
       current_statement.clear();
-      statement_start_line = current_line;
+      start_line = line_number + 1;
+    } else {
+      current_statement += ' ';
     }
   }
 
-  // check if there is a statement left
-  bool empty_statement = true;
-  for (char c : current_statement) {
-    if (!isspace(c))
-      empty_statement = false;
-  }
-  if (!empty_statement) {
-    throw ParseError("Unterminated statement", current_line);
+  if (!current_statement.empty()) {
+    throw ParseError("Missing semicolon at end of statement", line_number);
   }
 
   return statements;
 }
 
-// Add stream output operator for TokenType
+// Token recognition
+inline Token recognizeToken(std::string token) {
+  // Check for keywords first
+  if (TOKEN_MAP.find(token) != TOKEN_MAP.end()) {
+    return Token(TOKEN_MAP.at(token), token);
+  }
+
+  // Check for integer literal
+  bool is_integer = true;
+  for (size_t i = 0; i < token.length(); i++) {
+    char c = token[i];
+    if (i == 0 && c == '-')
+      continue;
+    if (!std::isdigit(c)) {
+      is_integer = false;
+      break;
+    }
+  }
+  if (is_integer) {
+    return Token(TokenType::INTEGER_LITERAL, token);
+  }
+
+  // Check for float literal
+  bool is_float = true;
+  bool has_dot = false;
+  for (size_t i = 0; i < token.length(); i++) {
+    char c = token[i];
+    if (i == 0 && c == '-')
+      continue;
+    if (c == '.' && !has_dot) {
+      has_dot = true;
+      continue;
+    }
+    if (!std::isdigit(c)) {
+      is_float = false;
+      break;
+    }
+  }
+  if (is_float && has_dot) {
+    return Token(TokenType::FLOAT_LITERAL, token);
+  }
+
+  // If not a keyword or number, it's an identifier
+  return Token(TokenType::IDENTIFIER, token);
+}
+
+// Stream output operator for TokenType
 inline std::ostream &operator<<(std::ostream &os, const TokenType &type) {
   auto it = TOKEN_STR.find(type);
   if (it != TOKEN_STR.end()) {
     os << it->second;
   } else {
-    os << "UNKNOWN_TOKEN_TYPE";
+    os << "UNKNOWN";
   }
-  return os;
-}
-
-// Add stream output operator for Value
-inline std::ostream &operator<<(std::ostream &os, const Value &value) {
-  std::visit([&os](const auto &v) { os << v; }, value);
-  return os;
-}
-
-// Add stream output operator for vector of Value
-inline std::ostream &operator<<(std::ostream &os,
-                                const std::vector<Value> &values) {
-  os << "[";
-  for (size_t i = 0; i < values.size(); ++i) {
-    os << values[i];
-    if (i < values.size() - 1) {
-      os << ", ";
-    }
-  }
-  os << "]";
   return os;
 }
