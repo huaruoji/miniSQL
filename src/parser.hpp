@@ -21,14 +21,13 @@ public:
       } else if (consume(TokenType::TABLE)) {
         return parseCreateTable();
       }
-      throw ParseError("Expected DATABASE or TABLE after CREATE",
-                       first_token_line);
+      throwError("Expected DATABASE or TABLE after CREATE", first_token_line);
 
     case TokenType::USE:
       if (consume(TokenType::DATABASE)) {
         return parseUseDatabase();
       }
-      throw ParseError("Expected DATABASE after USE", first_token_line);
+      throwError("Expected DATABASE after USE", first_token_line);
 
     case TokenType::DROP:
       return parseDropTable();
@@ -52,17 +51,20 @@ public:
       return nullptr;
 
     default:
-      throw ParseError("Unexpected token at start of statement",
-                       first_token_line);
+      throwError("Unexpected token at start of statement", first_token_line);
     }
     if (!consume(TokenType::SEMICOLON)) {
-      throw ParseError("Expected SEMICOLON at end of statement");
+      throwError("Expected SEMICOLON at end of statement");
     }
   }
 
 private:
   Lexer lexer;
   Token current_token;
+
+  void throwError(const std::string& message, int line_number = -1) {
+    throw ParseError(message, line_number == -1 ? current_token.line_number : line_number);
+  }
 
   void advance() { current_token = lexer.getNextToken(); }
 
@@ -82,46 +84,40 @@ private:
     auto where_condition = std::make_unique<WhereCondition>();
     where_condition->column_name_a = current_token.value;
     if (!consume(TokenType::IDENTIFIER)) {
-      throw ParseError("Expected column name after WHERE",
-                       current_token.line_number);
+      throwError("Expected column name after WHERE");
     }
     where_condition->condition_type_a = current_token.type;
     if (!consume(TokenType::GREATER_THAN) && !consume(TokenType::LESS_THAN) &&
         !consume(TokenType::EQUALS) && !consume(TokenType::INEQUALS)) {
-      throw ParseError("Expected operator after column name",
-                       current_token.line_number);
+      throwError("Expected operator after column name");
     }
     where_condition->value_a = current_token;
     if (!(consume(TokenType::STRING_LITERAL) ||
           consume(TokenType::INTEGER_LITERAL) ||
           consume(TokenType::FLOAT_LITERAL))) {
-      throw ParseError(
+      throwError(
           "Expected STRING_LITERAL, INTEGER_LITERAL, or FLOAT_LITERAL "
-          "after operator",
-          current_token.line_number);
+          "after operator");
     }
     if (match(TokenType::AND) || match(TokenType::OR)) {
       where_condition->logic_operator = current_token.type;
       advance();
       where_condition->column_name_b = current_token.value;
       if (!consume(TokenType::IDENTIFIER)) {
-        throw ParseError("Expected column name after logic operator",
-                         current_token.line_number);
+        throwError("Expected column name after logic operator");
       }
       where_condition->condition_type_b = current_token.type;
       if (!consume(TokenType::GREATER_THAN) && !consume(TokenType::LESS_THAN) &&
           !consume(TokenType::EQUALS) && !consume(TokenType::INEQUALS)) {
-        throw ParseError("Expected operator after column name",
-                         current_token.line_number);
+        throwError("Expected operator after column name");
       }
       where_condition->value_b = current_token;
       if (!(consume(TokenType::STRING_LITERAL) ||
             consume(TokenType::INTEGER_LITERAL) ||
             consume(TokenType::FLOAT_LITERAL))) {
-        throw ParseError(
+        throwError(
             "Expected STRING_LITERAL, INTEGER_LITERAL, or FLOAT_LITERAL "
-            "after operator",
-            current_token.line_number);
+            "after operator");
       }
     }
 
@@ -150,26 +146,22 @@ private:
     stmt->table_name = current_token.value;
     advance();
     if (!consume(TokenType::LEFT_PAREN)) {
-      throw ParseError("Expected LEFT_PAREN after CREATE TABLE",
-                       current_token.line_number);
+      throwError("Expected LEFT_PAREN after CREATE TABLE");
     }
     do {
       std::string column_name = current_token.value;
       if (!consume(TokenType::IDENTIFIER)) {
-        throw ParseError("Expected column name after LEFT_PAREN",
-                         current_token.line_number);
+        throwError("Expected column name after LEFT_PAREN");
       }
       TokenType token_type = current_token.type;
       if (!consume(TokenType::TEXT) && !consume(TokenType::INTEGER) &&
           !consume(TokenType::FLOAT)) {
-        throw ParseError("Expected TEXT, INTEGER, or FLOAT after column name",
-                         current_token.line_number);
+        throwError("Expected TEXT, INTEGER, or FLOAT after column name");
       }
       stmt->columns.push_back(ColumnDefinition{column_name, token_type});
     } while (consume(TokenType::COMMA));
     if (!consume(TokenType::RIGHT_PAREN)) {
-      throw ParseError("Expected RIGHT_PAREN after column definitions",
-                       current_token.line_number);
+      throwError("Expected RIGHT_PAREN after column definitions");
     }
 
     return stmt;
@@ -179,12 +171,11 @@ private:
     auto statement = std::make_unique<DropTableStatement>();
     statement->line_number = current_token.line_number;
     if (!consume(TokenType::TABLE)) {
-      throw ParseError("Expected TABLE after DROP", current_token.line_number);
+      throwError("Expected TABLE after DROP");
     }
     statement->table_name = current_token.value;
     if (!consume(TokenType::IDENTIFIER)) {
-      throw ParseError("Expected table name after DROP TABLE",
-                       current_token.line_number);
+      throwError("Expected table name after DROP TABLE");
     }
 
     return statement;
@@ -194,37 +185,32 @@ private:
     auto statement = std::make_unique<InsertStatement>();
     statement->line_number = current_token.line_number;
     if (!consume(TokenType::INTO)) {
-      throw ParseError("Expected INTO after INSERT", current_token.line_number);
+      throwError("Expected INTO after INSERT");
     }
     statement->table_name = current_token.value;
     if (!consume(TokenType::IDENTIFIER)) {
-      throw ParseError("Expected table name after INTO",
-                       current_token.line_number);
+      throwError("Expected table name after INTO");
     }
     if (!consume(TokenType::VALUES)) {
-      throw ParseError("Expected VALUES after table name",
-                       current_token.line_number);
+      throwError("Expected VALUES after table name");
     }
     if (!consume(TokenType::LEFT_PAREN)) {
-      throw ParseError("Expected LEFT_PAREN after INTO",
-                       current_token.line_number);
+      throwError("Expected LEFT_PAREN after INTO");
     }
     do {
       statement->values.push_back(convertTokenToValue(current_token));
       if (!(consume(TokenType::STRING_LITERAL) ||
             consume(TokenType::INTEGER_LITERAL) ||
             consume(TokenType::FLOAT_LITERAL))) {
-        throw ParseError(
+        throwError(
             "Expected STRING_LITERAL, INTEGER_LITERAL, or FLOAT_LITERAL "
             "after LEFT_PAREN, got " +
                 TOKEN_STR.find(current_token.type)->second + ": " +
-                current_token.value,
-            current_token.line_number);
+                current_token.value);
       }
     } while (consume(TokenType::COMMA));
     if (!consume(TokenType::RIGHT_PAREN)) {
-      throw ParseError("Expected RIGHT_PAREN after values",
-                       current_token.line_number);
+      throwError("Expected RIGHT_PAREN after values");
     }
 
     return statement;
@@ -238,18 +224,16 @@ private:
       do {
         statement->columns.push_back(current_token.value);
         if (!consume(TokenType::IDENTIFIER)) {
-          throw ParseError("Expected column name after SELECT",
-                           current_token.line_number);
+          throwError("Expected column name after SELECT");
         }
       } while (consume(TokenType::COMMA));
     }
     if (!consume(TokenType::FROM)) {
-      throw ParseError("Expected FROM after SELECT", current_token.line_number);
+      throwError("Expected FROM after SELECT");
     }
     statement->table_name = current_token.value;
     if (!consume(TokenType::IDENTIFIER)) {
-      throw ParseError("Expected table name after FROM",
-                       current_token.line_number);
+      throwError("Expected table name after FROM");
     }
     if (consume(TokenType::WHERE)) {
       statement->where_condition = parseWhereCondition();
@@ -263,21 +247,18 @@ private:
     statement->line_number = current_token.line_number;
     statement->table_name = current_token.value;
     if (!consume(TokenType::IDENTIFIER)) {
-      throw ParseError("Expected table name after UPDATE",
-                       current_token.line_number);
+      throwError("Expected table name after UPDATE");
     }
     if (!consume(TokenType::SET)) {
-      throw ParseError("Expected SET after UPDATE", current_token.line_number);
+      throwError("Expected SET after UPDATE");
     }
     do {
       std::string column_name_a = current_token.value;
       if (!consume(TokenType::IDENTIFIER)) {
-        throw ParseError("Expected column name after SET",
-                         current_token.line_number);
+        throwError("Expected column name after SET");
       }
       if (!consume(TokenType::EQUALS)) {
-        throw ParseError("Expected EQUALS after column name",
-                         current_token.line_number);
+        throwError("Expected EQUALS after column name");
       }
       TokenType condition_type = TokenType::EOF_TOKEN;
       Token value = current_token;
@@ -287,23 +268,20 @@ private:
         advance();
         condition_type = current_token.type;
         if (!(consume(TokenType::PLUS) || consume(TokenType::MINUS))) {
-          throw ParseError("Expected PLUS or MINUS after column name",
-                           current_token.line_number);
+          throwError("Expected PLUS or MINUS after column name");
         }
         value = current_token;
         if (!(consume(TokenType::INTEGER_LITERAL) ||
               consume(TokenType::FLOAT_LITERAL))) {
-          throw ParseError(
-              "Expected INTEGER_LITERAL or FLOAT_LITERAL after PLUS or MINUS",
-              current_token.line_number);
+          throwError(
+              "Expected INTEGER_LITERAL or FLOAT_LITERAL after PLUS or MINUS");
         }
       } else if (!(consume(TokenType::STRING_LITERAL) ||
                    consume(TokenType::INTEGER_LITERAL) ||
                    consume(TokenType::FLOAT_LITERAL))) {
-        throw ParseError("Expected STRING_LITERAL, INTEGER_LITERAL, "
-                         "FLOAT_LITERAL, or column name "
-                         "after equals sign",
-                         current_token.line_number);
+        throwError("Expected STRING_LITERAL, INTEGER_LITERAL, "
+                   "FLOAT_LITERAL, or column name "
+                   "after equals sign");
       }
       statement->set_conditions.push_back(
           SetCondition{column_name_a, column_name_b, condition_type, value});
@@ -319,12 +297,11 @@ private:
     auto statement = std::make_unique<DeleteStatement>();
     statement->line_number = current_token.line_number;
     if (!consume(TokenType::FROM)) {
-      throw ParseError("Expected FROM after DELETE", current_token.line_number);
+      throwError("Expected FROM after DELETE");
     }
     statement->table_name = current_token.value;
     if (!consume(TokenType::IDENTIFIER)) {
-      throw ParseError("Expected table name after FROM",
-                       current_token.line_number);
+      throwError("Expected table name after FROM");
     }
     if (consume(TokenType::WHERE)) {
       statement->where_condition = parseWhereCondition();
@@ -338,106 +315,84 @@ private:
     statement->line_number = current_token.line_number;
     statement->table_name_a = current_token.value;
     if (!consume(TokenType::IDENTIFIER)) {
-      throw ParseError("Expected table name after SELECT",
-                       current_token.line_number);
+      throwError("Expected table name after SELECT");
     }
     if (!consume(TokenType::DOT)) {
-      throw ParseError("Expected DOT after table name",
-                       current_token.line_number);
+      throwError("Expected DOT after table name");
     }
     statement->column_name_a = current_token.value;
     if (!consume(TokenType::IDENTIFIER)) {
-      throw ParseError("Expected column name after DOT",
-                       current_token.line_number);
+      throwError("Expected column name after DOT");
     }
     if (!consume(TokenType::COMMA)) {
-      throw ParseError("Expected COMMA after column name",
-                       current_token.line_number);
+      throwError("Expected COMMA after column name");
     }
     statement->table_name_b = current_token.value;
     if (!consume(TokenType::IDENTIFIER)) {
-      throw ParseError("Expected table name after SELECT",
-                       current_token.line_number);
+      throwError("Expected table name after SELECT");
     }
     if (!consume(TokenType::DOT)) {
-      throw ParseError("Expected DOT after table name",
-                       current_token.line_number);
+      throwError("Expected DOT after table name");
     }
     statement->column_name_b = current_token.value;
     if (!consume(TokenType::IDENTIFIER)) {
-      throw ParseError("Expected column name after DOT",
-                       current_token.line_number);
+      throwError("Expected column name after DOT");
     }
     if (!consume(TokenType::FROM)) {
-      throw ParseError("Expected FROM after column name",
-                       current_token.line_number);
+      throwError("Expected FROM after column name");
     }
     if (current_token.value != statement->table_name_a) {
-      throw ParseError("Expected table name to be " + statement->table_name_a,
-                       current_token.line_number);
+      throwError("Expected table name to be " + statement->table_name_a);
     }
     if (!consume(TokenType::IDENTIFIER)) {
-      throw ParseError("Expected table name after FROM",
-                       current_token.line_number);
+      throwError("Expected table name after FROM");
     }
     if (!consume(TokenType::INNER)) {
-      throw ParseError("Expected INNER after table name",
-                       current_token.line_number);
+      throwError("Expected INNER after table name");
     }
     if (!consume(TokenType::JOIN)) {
-      throw ParseError("Expected JOIN after INNER", current_token.line_number);
+      throwError("Expected JOIN after INNER");
     }
     if (current_token.value != statement->table_name_b) {
-      throw ParseError("Expected table name to be " + statement->table_name_b,
-                       current_token.line_number);
+      throwError("Expected table name to be " + statement->table_name_b);
     }
     if (!consume(TokenType::IDENTIFIER)) {
-      throw ParseError("Expected table name after JOIN",
-                       current_token.line_number);
+      throwError("Expected table name after JOIN");
     }
     if (!consume(TokenType::ON)) {
-      throw ParseError("Expected ON after JOIN", current_token.line_number);
+      throwError("Expected ON after JOIN");
     }
     if (current_token.value != statement->table_name_a) {
-      throw ParseError("Expected table name to be " + statement->table_name_a,
-                       current_token.line_number);
+      throwError("Expected table name to be " + statement->table_name_a);
     }
     if (!consume(TokenType::IDENTIFIER)) {
-      throw ParseError("Expected table name after ON",
-                       current_token.line_number);
+      throwError("Expected table name after ON");
     }
     if (!consume(TokenType::DOT)) {
-      throw ParseError("Expected DOT after column name",
-                       current_token.line_number);
+      throwError("Expected DOT after column name");
     }
     statement->condition_column_name_a = current_token.value;
     if (!consume(TokenType::IDENTIFIER)) {
-      throw ParseError("Expected column name after DOT",
-                       current_token.line_number);
+      throwError("Expected column name after DOT");
     }
     statement->condition_type = current_token.type;
     if (!(consume(TokenType::EQUALS) || consume(TokenType::GREATER_THAN) ||
           consume(TokenType::LESS_THAN) || consume(TokenType::INEQUALS))) {
-      throw ParseError("Expected EQUALS, GREATER_THAN, LESS_THAN, or INEQUALS "
-                       "after column name",
-                       current_token.line_number);
+      throwError("Expected EQUALS, GREATER_THAN, LESS_THAN, or INEQUALS "
+                 "after column name");
     }
     if (current_token.value != statement->table_name_b) {
-      throw ParseError("Expected table name to be " + statement->table_name_b,
-                       current_token.line_number);
+      throwError("Expected table name to be " + statement->table_name_b);
     }
     if (!consume(TokenType::IDENTIFIER)) {
-      throw ParseError("Expected column name after EQUALS",
-                       current_token.line_number);
+      throwError("Expected column name after EQUALS");
     }
     if (!consume(TokenType::DOT)) {
-      throw ParseError("Expected DOT after column name",
-                       current_token.line_number);
+      throwError("Expected DOT after column name");
     }
     statement->condition_column_name_b = current_token.value;
     if (!consume(TokenType::IDENTIFIER)) {
-      throw ParseError("Expected column name after DOT",
-                       current_token.line_number);
+      throwError("Expected column name after DOT");
     }
 
     return statement;
