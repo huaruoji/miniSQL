@@ -30,7 +30,6 @@
 
 - [x] [Project 要求中的所有功能](requirements.md)
 - [x] 基本的现代 C++ 使用
-- [x] 一般的效率（数据库使用 `std::list` 和 `std::vector` 实现）。
 - [x] 面向对象封装。
 
 ## 使用方式
