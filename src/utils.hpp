@@ -3,13 +3,14 @@
 // Standard library includes
 #include <cassert>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <variant>
 #include <vector>
-#include <memory>
 
 //-----------------------------------------------------------------------------
 // Debug utilities
@@ -227,26 +228,26 @@ enum class SQLStatementType {
 
 // Structure for WHERE conditions in SQL statements
 struct WhereCondition {
-    // Node type for the condition tree
-    enum class NodeType {
-        LEAF,       // Single condition (e.g., A > 5)
-        OPERATOR    // Logical operator (AND/OR) with children
-    };
-    
-    NodeType type;
-    
-    // For LEAF nodes
-    std::string column_name;    // Column name for comparison
-    TokenType condition_type;   // Comparison operator (>, <, =, !=)
-    Token value;               // Value to compare against
-    
-    // For OPERATOR nodes
-    TokenType logic_operator;  // AND/OR operator
-    std::unique_ptr<WhereCondition> left;   // Left subtree
-    std::unique_ptr<WhereCondition> right;  // Right subtree
-    
-    // Constructor
-    WhereCondition(NodeType t = NodeType::LEAF) : type(t) {}
+  // Node type for the condition tree
+  enum class NodeType {
+    LEAF,    // Single condition (e.g., A > 5)
+    OPERATOR // Logical operator (AND/OR) with children
+  };
+
+  NodeType type;
+
+  // For LEAF nodes
+  std::string column_name;  // Column name for comparison
+  TokenType condition_type; // Comparison operator (>, <, =, !=)
+  Token value;              // Value to compare against
+
+  // For OPERATOR nodes
+  TokenType logic_operator;              // AND/OR operator
+  std::unique_ptr<WhereCondition> left;  // Left subtree
+  std::unique_ptr<WhereCondition> right; // Right subtree
+
+  // Constructor
+  WhereCondition(NodeType t = NodeType::LEAF) : type(t) {}
 };
 
 // Expression node types
@@ -259,9 +260,9 @@ enum class ExprNodeType {
 // Expression node for parsing arithmetic expressions
 struct ExpressionNode {
   ExprNodeType type;
-  Token token;  // For values and operators
+  Token token; // For values and operators
   std::vector<std::unique_ptr<ExpressionNode>> children;
-  
+
   ExpressionNode(ExprNodeType t, Token tok) : type(t), token(tok) {}
 };
 
@@ -313,9 +314,11 @@ public:
     }
   }
 
-  void write(const std::string &data) { file << "\"" << data << "\""; }
+  void write(const std::string &data) { file << "\'" << data << "\'"; }
   void write(int data) { file << data; }
-  void write(double data) { file << data; }
+  void write(double data) {
+    file << std::fixed << std::setprecision(2) << data;
+  }
 
   void write(const Value &data) {
     if (std::holds_alternative<int>(data)) {
@@ -337,9 +340,6 @@ public:
   }
 
   void write(const std::vector<std::vector<Value>> &rows) {
-    if (file.tellp() > 0) {
-      file << "---\n";
-    }
     for (const auto &row : rows) {
       if (&row != &rows.front()) {
         write(row);
@@ -348,6 +348,7 @@ public:
       }
       file << "\n";
     }
+    file << "---\n";
   }
 };
 
@@ -365,7 +366,8 @@ Value convertTokenToValue(const Token &token) {
   case TokenType::FLOAT_LITERAL:
     return std::stod(token.value);
   case TokenType::STRING_LITERAL:
-  case TokenType::IDENTIFIER:  // Allow identifiers to be converted to string values
+  case TokenType::IDENTIFIER: // Allow identifiers to be converted to string
+                              // values
     return token.value;
   default:
     throw ParseError("Invalid token type for value conversion");
@@ -400,12 +402,12 @@ std::vector<Statement> splitStatements(std::ifstream &input_file) {
     size_t pos = 0;
     size_t semicolon_pos;
     std::string remaining = current_statement;
-    
+
     while ((semicolon_pos = remaining.find(';', pos)) != std::string::npos) {
       // Extract the statement up to the semicolon
       std::string statement = remaining.substr(0, semicolon_pos + 1);
       statements.emplace_back(statement, start_line);
-      
+
       // Move past the semicolon for next search
       remaining = remaining.substr(semicolon_pos + 1);
       // Trim leading whitespace from remaining
@@ -416,7 +418,7 @@ std::vector<Statement> splitStatements(std::ifstream &input_file) {
         remaining.clear();
       }
     }
-    
+
     if (remaining.empty()) {
       current_statement.clear();
       start_line = line_number + 1;
