@@ -148,90 +148,27 @@ public:
         // Update matching rows with new values
         for (const auto &set_condition : stmt.set_conditions) {
           // Find column index
-          auto it = column_index.find(set_condition.column_name_a);
+          auto it = column_index.find(set_condition.target_column);
           if (it == column_index.end()) {
-            throw TableError("Column not found: " +
-                             set_condition.column_name_a);
+            throw TableError("Column not found: " + set_condition.target_column);
           }
           size_t index = it->second;
 
+          // Evaluate the expression and update the value
+          Value new_value = evaluateExpression(set_condition.expression.get(), row);
+          
           // Validate that the new value matches the column type
-          if (set_condition.column_name_b.empty()) {
-            const auto &column_type = columns[index].type;
-            auto value = convertTokenToValue(set_condition.value);
-            bool type_ok = (std::holds_alternative<int>(value) &&
-                            column_type == TokenType::INTEGER) ||
-                           (std::holds_alternative<double>(value) &&
-                            column_type == TokenType::FLOAT) ||
-                           (std::holds_alternative<std::string>(value) &&
-                            column_type == TokenType::TEXT);
+          const auto &column_type = columns[index].type;
+          bool type_ok = (std::holds_alternative<int>(new_value) && column_type == TokenType::INTEGER) ||
+                        (std::holds_alternative<double>(new_value) && column_type == TokenType::FLOAT) ||
+                        (std::holds_alternative<std::string>(new_value) && column_type == TokenType::TEXT);
 
-            if (!type_ok) {
-              std::cerr << "Value: ";
-              std::visit([](const auto &v) { std::cerr << v; }, value);
-              std::cerr << " Type: " << TOKEN_STR.find(column_type)->second
-                        << ' ';
-
-              std::cerr << " Type: "
-                        << TOKEN_STR.find(set_condition.value.type)->second
-                        << ' ';
-              std::cerr << " Value: " << set_condition.value.value << ' ';
-              throw TableError("Value type does not match column type");
-            }
-
-            // Update the value
-            row[index] = value;
-          } else {
-            // Find the source column index
-            auto src_it = column_index.find(set_condition.column_name_b);
-            if (src_it == column_index.end()) {
-              throw TableError("Source column not found: " +
-                               set_condition.column_name_b);
-            }
-            size_t src_index = src_it->second;
-
-            // Get the value from the source column
-            const auto &src_value = row[src_index];
-
-            // Apply the operator (+ or -) if specified
-            if (set_condition.operator_type == TokenType::PLUS) {
-              // Handle addition
-              if (std::holds_alternative<int>(src_value) &&
-                  std::holds_alternative<int>(
-                      convertTokenToValue(set_condition.value))) {
-                row[index] =
-                    std::get<int>(src_value) +
-                    std::get<int>(convertTokenToValue(set_condition.value));
-              } else if (std::holds_alternative<double>(src_value) &&
-                         std::holds_alternative<double>(
-                             convertTokenToValue(set_condition.value))) {
-                row[index] =
-                    std::get<double>(src_value) +
-                    std::get<double>(convertTokenToValue(set_condition.value));
-              } else {
-                throw TableError("Invalid types for addition operation");
-              }
-            } else if (set_condition.operator_type == TokenType::MINUS) {
-              // Handle subtraction
-              if (std::holds_alternative<int>(src_value) &&
-                  std::holds_alternative<int>(
-                      convertTokenToValue(set_condition.value))) {
-                row[index] =
-                    std::get<int>(src_value) -
-                    std::get<int>(convertTokenToValue(set_condition.value));
-              } else if (std::holds_alternative<double>(src_value) &&
-                         std::holds_alternative<double>(
-                             convertTokenToValue(set_condition.value))) {
-                row[index] =
-                    std::get<double>(src_value) -
-                    std::get<double>(convertTokenToValue(set_condition.value));
-              } else {
-                throw TableError("Invalid types for subtraction operation");
-              }
-            } else {
-              throw TableError("Invalid operator type");
-            }
+          if (!type_ok) {
+            throw TableError("Value type does not match column type");
           }
+
+          // Update the value
+          row[index] = new_value;
         }
       }
     }
@@ -527,6 +464,82 @@ public:
     }
 
     file_writer.write(results);
+  }
+
+  // Evaluate an expression node recursively
+  Value evaluateExpression(const ExpressionNode* node, const std::vector<Value>& row) {
+    switch (node->type) {
+      case ExprNodeType::VALUE: {
+        if (node->token.type == TokenType::IDENTIFIER) {
+          // Get value from column
+          auto it = column_index.find(node->token.value);
+          if (it == column_index.end()) {
+            throw TableError("Column not found: " + node->token.value);
+          }
+          return row[it->second];
+        } else {
+          // Return literal value
+          return convertTokenToValue(node->token);
+        }
+      }
+      
+      case ExprNodeType::OPERATOR: {
+        if (node->children.size() != 2) {
+          throw TableError("Invalid operator node");
+        }
+        
+        Value left = evaluateExpression(node->children[0].get(), row);
+        Value right = evaluateExpression(node->children[1].get(), row);
+        
+        switch (node->token.type) {
+          case TokenType::PLUS:
+            if (std::holds_alternative<int>(left) && std::holds_alternative<int>(right)) {
+              return std::get<int>(left) + std::get<int>(right);
+            }
+            if (std::holds_alternative<double>(left) || std::holds_alternative<double>(right)) {
+              double l = std::holds_alternative<int>(left) ? std::get<int>(left) : std::get<double>(left);
+              double r = std::holds_alternative<int>(right) ? std::get<int>(right) : std::get<double>(right);
+              return l + r;
+            }
+            throw TableError("Invalid types for addition");
+            
+          case TokenType::MINUS:
+            if (std::holds_alternative<int>(left) && std::holds_alternative<int>(right)) {
+              return std::get<int>(left) - std::get<int>(right);
+            }
+            if (std::holds_alternative<double>(left) || std::holds_alternative<double>(right)) {
+              double l = std::holds_alternative<int>(left) ? std::get<int>(left) : std::get<double>(left);
+              double r = std::holds_alternative<int>(right) ? std::get<int>(right) : std::get<double>(right);
+              return l - r;
+            }
+            throw TableError("Invalid types for subtraction");
+            
+          case TokenType::ASTERISK:
+            if (std::holds_alternative<int>(left) && std::holds_alternative<int>(right)) {
+              return std::get<int>(left) * std::get<int>(right);
+            }
+            if (std::holds_alternative<double>(left) || std::holds_alternative<double>(right)) {
+              double l = std::holds_alternative<int>(left) ? std::get<int>(left) : std::get<double>(left);
+              double r = std::holds_alternative<int>(right) ? std::get<int>(right) : std::get<double>(right);
+              return l * r;
+            }
+            throw TableError("Invalid types for multiplication");
+            
+          default:
+            throw TableError("Unknown operator");
+        }
+      }
+      
+      case ExprNodeType::PARENTHESIS: {
+        if (node->children.size() != 1) {
+          throw TableError("Invalid parenthesis node");
+        }
+        return evaluateExpression(node->children[0].get(), row);
+      }
+      
+      default:
+        throw TableError("Unknown expression node type");
+    }
   }
 
   // Helper function to quote string

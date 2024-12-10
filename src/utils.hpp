@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <variant>
 #include <vector>
+#include <memory>
 
 //-----------------------------------------------------------------------------
 // Debug utilities
@@ -235,12 +236,26 @@ struct WhereCondition {
   Token value_b;
 };
 
+// Expression node types
+enum class ExprNodeType {
+  VALUE,      // Literal value or column reference
+  OPERATOR,   // Arithmetic operator
+  PARENTHESIS // Parenthesized expression
+};
+
+// Expression node for parsing arithmetic expressions
+struct ExpressionNode {
+  ExprNodeType type;
+  Token token;  // For values and operators
+  std::vector<std::unique_ptr<ExpressionNode>> children;
+  
+  ExpressionNode(ExprNodeType t, Token tok) : type(t), token(tok) {}
+};
+
 // Structure for SET conditions in UPDATE statements
 struct SetCondition {
-  std::string column_name_a;
-  std::string column_name_b;
-  TokenType operator_type;
-  Token value;
+  std::string target_column;
+  std::unique_ptr<ExpressionNode> expression;
 };
 
 // Structure for column definitions in CREATE TABLE statements

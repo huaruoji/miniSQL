@@ -316,50 +316,35 @@ private:
     auto statement = std::make_unique<UpdateStatement>();
     statement->line_number = current_token.line_number;
     statement->table_name = current_token.value;
+    
     if (!consume(TokenType::IDENTIFIER)) {
       throwError("Expected table name after UPDATE");
     }
     if (!consume(TokenType::SET)) {
       throwError("Expected SET after UPDATE");
     }
+    
     do {
-      std::string column_name_a = current_token.value;
+      SetCondition set_condition;
+      set_condition.target_column = current_token.value;
+      
       if (!consume(TokenType::IDENTIFIER)) {
         throwError("Expected column name after SET");
       }
       if (!consume(TokenType::EQUALS)) {
         throwError("Expected EQUALS after column name");
       }
-      TokenType condition_type = TokenType::EOF_TOKEN;
-      Token value = current_token;
-      std::string column_name_b;
-      if (match(TokenType::IDENTIFIER)) {
-        column_name_b = current_token.value;
-        advance();
-        condition_type = current_token.type;
-        if (!(consume(TokenType::PLUS) || consume(TokenType::MINUS))) {
-          throwError("Expected PLUS or MINUS after column name");
-        }
-        value = current_token;
-        if (!(consume(TokenType::INTEGER_LITERAL) ||
-              consume(TokenType::FLOAT_LITERAL))) {
-          throwError(
-              "Expected INTEGER_LITERAL or FLOAT_LITERAL after PLUS or MINUS");
-        }
-      } else if (!(consume(TokenType::STRING_LITERAL) ||
-                   consume(TokenType::INTEGER_LITERAL) ||
-                   consume(TokenType::FLOAT_LITERAL))) {
-        throwError("Expected STRING_LITERAL, INTEGER_LITERAL, "
-                   "FLOAT_LITERAL, or column name "
-                   "after equals sign");
-      }
-      statement->set_conditions.push_back(
-          SetCondition{column_name_a, column_name_b, condition_type, value});
+      
+      // Parse the expression after the equals sign
+      set_condition.expression = parseExpression();
+      statement->set_conditions.push_back(std::move(set_condition));
+      
     } while (consume(TokenType::COMMA));
+    
     if (consume(TokenType::WHERE)) {
       statement->where_condition = parseWhereCondition();
     }
-
+    
     return statement;
   }
 
@@ -474,5 +459,67 @@ private:
     }
 
     return statement;
+  }
+
+  // Parse arithmetic expressions using recursive descent
+  std::unique_ptr<ExpressionNode> parseExpression() {
+    return parseAdditive();
+  }
+
+  std::unique_ptr<ExpressionNode> parseAdditive() {
+    auto left = parseMultiplicative();
+    
+    while (match(TokenType::PLUS) || match(TokenType::MINUS)) {
+      Token op = current_token;
+      advance();
+      auto right = parseMultiplicative();
+      
+      auto node = std::make_unique<ExpressionNode>(ExprNodeType::OPERATOR, op);
+      node->children.push_back(std::move(left));
+      node->children.push_back(std::move(right));
+      left = std::move(node);
+    }
+    
+    return left;
+  }
+
+  std::unique_ptr<ExpressionNode> parseMultiplicative() {
+    auto left = parsePrimary();
+    
+    while (match(TokenType::ASTERISK)) {
+      Token op = current_token;
+      advance();
+      auto right = parsePrimary();
+      
+      auto node = std::make_unique<ExpressionNode>(ExprNodeType::OPERATOR, op);
+      node->children.push_back(std::move(left));
+      node->children.push_back(std::move(right));
+      left = std::move(node);
+    }
+    
+    return left;
+  }
+
+  std::unique_ptr<ExpressionNode> parsePrimary() {
+    if (match(TokenType::LEFT_PAREN)) {
+      advance();
+      auto expr = parseExpression();
+      if (!consume(TokenType::RIGHT_PAREN)) {
+        throwError("Expected closing parenthesis");
+      }
+      auto node = std::make_unique<ExpressionNode>(ExprNodeType::PARENTHESIS, Token());
+      node->children.push_back(std::move(expr));
+      return node;
+    }
+    
+    Token token = current_token;
+    if (consume(TokenType::IDENTIFIER) || 
+        consume(TokenType::INTEGER_LITERAL) || 
+        consume(TokenType::FLOAT_LITERAL)) {
+      return std::make_unique<ExpressionNode>(ExprNodeType::VALUE, token);
+    }
+    
+    throwError("Expected expression");
+    return nullptr;
   }
 };
