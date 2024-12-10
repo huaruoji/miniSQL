@@ -110,14 +110,29 @@ private:
       throwError("Expected operator after column name");
     }
     
-    where_condition->value_a = current_token;
-    if (!(consume(TokenType::STRING_LITERAL) ||
-          consume(TokenType::INTEGER_LITERAL) ||
-          consume(TokenType::FLOAT_LITERAL) ||
-          consume(TokenType::IDENTIFIER))) {  // Allow column names as values
-      throwError(
-          "Expected STRING_LITERAL, INTEGER_LITERAL, FLOAT_LITERAL, "
-          "or column name after operator");
+    // Parse value or column reference
+    first_part = current_token.value;
+    if (consume(TokenType::IDENTIFIER)) {
+      // Check if this is a table.column format
+      if (match(TokenType::DOT)) {
+        consume(TokenType::DOT);
+        std::string second_part = current_token.value;
+        if (!consume(TokenType::IDENTIFIER)) {
+          throwError("Expected column name after DOT");
+        }
+        where_condition->value_a = Token(TokenType::IDENTIFIER, first_part + "." + second_part);
+      } else {
+        where_condition->value_a = Token(TokenType::IDENTIFIER, first_part);
+      }
+    } else {
+      // Store the current token before consuming it
+      Token value_token = current_token;
+      if (consume(TokenType::STRING_LITERAL) || consume(TokenType::INTEGER_LITERAL) ||
+          consume(TokenType::FLOAT_LITERAL)) {
+        where_condition->value_a = value_token;
+      } else {
+        throwError("Expected value or column reference after operator");
+      }
     }
     
     if (match(TokenType::AND) || match(TokenType::OR)) {
@@ -150,14 +165,29 @@ private:
         throwError("Expected operator after column name");
       }
       
-      where_condition->value_b = current_token;
-      if (!(consume(TokenType::STRING_LITERAL) ||
-            consume(TokenType::INTEGER_LITERAL) ||
-            consume(TokenType::FLOAT_LITERAL) ||
-            consume(TokenType::IDENTIFIER))) {  // Allow column names as values
-        throwError(
-            "Expected STRING_LITERAL, INTEGER_LITERAL, FLOAT_LITERAL, "
-            "or column name after operator");
+      // Parse value or column reference
+      first_part = current_token.value;
+      if (consume(TokenType::IDENTIFIER)) {
+        // Check if this is a table.column format
+        if (match(TokenType::DOT)) {
+          consume(TokenType::DOT);
+          std::string second_part = current_token.value;
+          if (!consume(TokenType::IDENTIFIER)) {
+            throwError("Expected column name after DOT");
+          }
+          where_condition->value_b = Token(TokenType::IDENTIFIER, first_part + "." + second_part);
+        } else {
+          where_condition->value_b = Token(TokenType::IDENTIFIER, first_part);
+        }
+      } else {
+        // Store the current token before consuming it
+        Token value_token = current_token;
+        if (consume(TokenType::STRING_LITERAL) || consume(TokenType::INTEGER_LITERAL) ||
+            consume(TokenType::FLOAT_LITERAL)) {
+          where_condition->value_b = value_token;
+        } else {
+          throwError("Expected value or column reference after operator");
+        }
       }
     }
 

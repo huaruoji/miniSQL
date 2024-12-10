@@ -15,7 +15,6 @@ public:
     for (size_t i = 0; i < input.length(); ++i) {
       char c = input[i];
       auto createToken = [&]() {
-        // debug(parsing_nagetive_number);
         if (!current_string.empty()) {
           tokens.push_back(
               Token(recognizeToken(current_string).type,
@@ -40,19 +39,19 @@ public:
           parsing_str_literal = false;
         } else
           parsing_str_literal = true;
-      } else if (c == '(' || c == ')' || c == ',' || c == ';' || c == '>' ||
+      } else if (!parsing_str_literal && 
+                (c == '(' || c == ')' || c == ',' || c == ';' || c == '>' ||
                  c == '<' || c == '*' || c == '+' ||
                  (c == '.' && !std::all_of(current_string.begin(),
-                                           current_string.end(), ::isdigit))) {
+                                           current_string.end(), ::isdigit)))) {
         createToken();
         tokens.push_back(Token(recognizeToken(std::string(1, c)).type,
                                std::string(1, c), current_line));
-      } else if (c == '!' && i + 1 < input.length() && input[i + 1] == '=') {
+      } else if (!parsing_str_literal && c == '!' && i + 1 < input.length() && input[i + 1] == '=') {
         createToken();
         tokens.push_back(Token(TokenType::INEQUALS, "!=", current_line));
         ++i;
-      } else if (c == '-') {
-        // debug(isdigit(input[i + 1]));
+      } else if (!parsing_str_literal && c == '-') {
         if (i + 1 < input.length() && std::isdigit(input[i + 1])) {
           parsing_nagetive_number = true;
         } else {

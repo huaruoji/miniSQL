@@ -311,18 +311,12 @@ public:
       
       Table* table = all_tables[table_idx_it->second];
       
-      // Calculate the correct column index based on the table's position
-      size_t base_index = 0;
-      for (size_t i = 0; i < table_idx_it->second; ++i) {
-        base_index += all_tables[i]->columns.size();
-      }
-      
       auto col_idx_it = table->column_index.find(column_name);
       if (col_idx_it == table->column_index.end()) {
         throw TableError("Column not found: " + column_name + " in table " + table_name);
       }
       
-      return {table, base_index + col_idx_it->second};
+      return {table, col_idx_it->second};
     };
 
     // Initialize results with column names
@@ -380,17 +374,30 @@ public:
           // Get the actual values for comparison
           Value val_a;
           if (table_a == this) {
-            val_a = current_row[col_idx_a % columns.size()];
+            // Value is in the current row
+            val_a = current_row[col_idx_a];
+          } else if (table_a == table_b) {
+            // Value is in row_b
+            val_a = row_b[col_idx_a];
           } else {
-            size_t actual_idx = col_idx_a - columns.size();
-            val_a = row_b[actual_idx];
+            // Value must be from a previously joined table
+            size_t offset = 0;
+            for (const auto& table : all_tables) {
+              if (table == table_a) {
+                val_a = current_row[offset + col_idx_a];
+                break;
+              }
+              offset += table->columns.size();
+            }
           }
 
           Value val_b;
           if (table_b == this) {
-            val_b = current_row[col_idx_b % columns.size()];
+            // Value is in the current row
+            val_b = current_row[col_idx_b];
           } else {
-            val_b = row_b[col_idx_b % table_b->columns.size()];
+            // Value is in row_b
+            val_b = row_b[col_idx_b];
           }
           
           if (checkJoinCondition(val_a, val_b, op)) {
@@ -413,18 +420,72 @@ public:
         
         // Get values for the condition
         auto [table_a, col_idx_a] = getTableColumnIndex(stmt.where_condition->column_name_a);
-        const Value& val_a = getColumnValue(row, col_idx_a);
-        Value condition_val_a = convertTokenToValue(stmt.where_condition->value_a);
+        Value val_a;
         
-        matches = checkJoinCondition(val_a, condition_val_a, stmt.where_condition->condition_type_a);
+        // Calculate offset for table_a
+        size_t offset_a = 0;
+        for (const auto& table : all_tables) {
+          if (table == table_a) {
+            break;
+          }
+          offset_a += table->columns.size();
+        }
+        val_a = row[offset_a + col_idx_a];
+        
+        // Get the second value
+        Value val_b;
+        if (stmt.where_condition->value_a.type == TokenType::IDENTIFIER) {
+          // Value is a column reference
+          auto [table_b, col_idx_b] = getTableColumnIndex(stmt.where_condition->value_a.value);
+          // Calculate offset for table_b
+          size_t offset_b = 0;
+          for (const auto& table : all_tables) {
+            if (table == table_b) {
+              break;
+            }
+            offset_b += table->columns.size();
+          }
+          val_b = row[offset_b + col_idx_b];
+        } else {
+          // Value is a literal
+          val_b = convertTokenToValue(stmt.where_condition->value_a);
+        }
+        
+        matches = checkJoinCondition(val_a, val_b, stmt.where_condition->condition_type_a);
         
         if (stmt.where_condition->logic_operator != TokenType::EOF_TOKEN) {
-          auto [table_b, col_idx_b] = getTableColumnIndex(stmt.where_condition->column_name_b);
-          const Value& val_b = getColumnValue(row, col_idx_b);
-          Value condition_val_b = convertTokenToValue(stmt.where_condition->value_b);
+          auto [table_c, col_idx_c] = getTableColumnIndex(stmt.where_condition->column_name_b);
+          // Calculate offset for table_c
+          size_t offset_c = 0;
+          for (const auto& table : all_tables) {
+            if (table == table_c) {
+              break;
+            }
+            offset_c += table->columns.size();
+          }
+          Value val_c = row[offset_c + col_idx_c];
           
-          bool second_condition = checkJoinCondition(val_b, condition_val_b, 
-                                                   stmt.where_condition->condition_type_b);
+          // Get the second value
+          Value val_d;
+          if (stmt.where_condition->value_b.type == TokenType::IDENTIFIER) {
+            // Value is a column reference
+            auto [table_d, col_idx_d] = getTableColumnIndex(stmt.where_condition->value_b.value);
+            // Calculate offset for table_d
+            size_t offset_d = 0;
+            for (const auto& table : all_tables) {
+              if (table == table_d) {
+                break;
+              }
+              offset_d += table->columns.size();
+            }
+            val_d = row[offset_d + col_idx_d];
+          } else {
+            // Value is a literal
+            val_d = convertTokenToValue(stmt.where_condition->value_b);
+          }
+          
+          bool second_condition = checkJoinCondition(val_c, val_d, 
+                                                  stmt.where_condition->condition_type_b);
           
           if (stmt.where_condition->logic_operator == TokenType::AND) {
             matches = matches && second_condition;
@@ -445,13 +506,18 @@ public:
       std::vector<Value> selected_row;
       for (const auto& col : stmt.selected_columns) {
         auto [table, col_idx] = getTableColumnIndex(col);
-        size_t actual_idx;
-        if (table == this) {
-          actual_idx = col_idx % columns.size();
-        } else {
-          actual_idx = col_idx % table->columns.size();
-          actual_idx += columns.size();
+        
+        // Calculate offset for the table
+        size_t offset = 0;
+        for (const auto& t : all_tables) {
+          if (t == table) {
+            break;
+          }
+          offset += t->columns.size();
         }
+        
+        // Get the value from the correct position
+        size_t actual_idx = offset + col_idx;
         if (actual_idx >= row.size()) {
           throw TableError("Column index out of range: " + std::to_string(actual_idx));
         }

@@ -337,6 +337,7 @@ Value convertTokenToValue(const Token &token) {
   case TokenType::FLOAT_LITERAL:
     return std::stod(token.value);
   case TokenType::STRING_LITERAL:
+  case TokenType::IDENTIFIER:  // Allow identifiers to be converted to string values
     return token.value;
   default:
     throw ParseError("Invalid token type for value conversion");
