@@ -28,10 +28,10 @@ Supports basic data types: INTEGER, FLOAT, TEXT.
 
 ## Self-evaluation
 
-- [x] [All functionalities in the Project requirements](requirements.md)
+- [x] [All functionalities in the project requirements](requirements.md)
 - [x] Basic usage of modern C++
-- [x] Average efficiency (database implemented using `std::list` and `std::vector`)
 - [x] Object-oriented encapsulation
+- [x] Implementation of complex nested SET or WHERE clauses using recursive descent parsing for expression analysis
 
 ## Usage
 

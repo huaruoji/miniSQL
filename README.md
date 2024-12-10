@@ -31,8 +31,11 @@
 - [x] [Project 要求中的所有功能](requirements.md)
 - [x] 基本的现代 C++ 使用
 - [x] 面向对象封装。
+- [x] 使用递归下降解析表达式实现括号嵌套的复杂 SET 语句或 WHERE 语句。
 
 ## 使用方式
+
+
 
 查看 [release](https://github.com/huaruoji/miniSQL/releases/) 下载可执行文件。
 

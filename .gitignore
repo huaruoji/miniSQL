@@ -10,7 +10,6 @@ cmake-build-*/
 *.o
 *.out
 *.exe
-minidb
 
 # CMake files
 CMakeCache.txt
