@@ -54,13 +54,11 @@ struct SelectStatement : SQLStatement {
 
 struct InnerJoinStatement : SQLStatement {
   InnerJoinStatement() { type = SQLStatementType::INNER_JOIN; }
-  std::string table_name_a;
-  std::string table_name_b;
-  std::string column_name_a;
-  std::string column_name_b;
-  std::string condition_column_name_a;
-  std::string condition_column_name_b;
-  TokenType condition_type;
+  std::vector<std::string> selected_columns;  // Format: tableName.columnName
+  std::vector<std::string> tables;  // List of tables to join
+  std::vector<std::pair<std::string, std::string>> join_conditions;  // Format: <tableName.columnName, tableName.columnName>
+  std::vector<TokenType> join_operators;  // Operators for join conditions (=, <, >, !=)
+  std::unique_ptr<WhereCondition> where_condition;
 };
 
 struct UpdateStatement : SQLStatement {

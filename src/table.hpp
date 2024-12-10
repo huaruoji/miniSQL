@@ -279,30 +279,185 @@ public:
     }
   }
 
-  void innerJoin(const InnerJoinStatement &stmt, Table &table_b) {
-    size_t col_idx_a = column_index[stmt.column_name_a];
-    size_t col_idx_b = table_b.column_index[stmt.column_name_b];
+  void innerJoin(const InnerJoinStatement &stmt, std::vector<std::unique_ptr<Table>> &other_tables) {
+    // Map to store table name to index mapping
+    std::unordered_map<std::string, size_t> table_indices;
+    table_indices[name] = 0;  // Current table is at index 0
+    for (size_t i = 0; i < other_tables.size(); ++i) {
+      table_indices[other_tables[i]->getName()] = i + 1;
+    }
 
-    std::vector<std::vector<Value>> results({std::vector<Value>(
-        {Value(stmt.column_name_a), Value(stmt.column_name_b)})});
+    // Vector to store all tables (current table + other tables)
+    std::vector<Table*> all_tables;
+    all_tables.push_back(this);
+    for (const auto& table : other_tables) {
+      all_tables.push_back(table.get());
+    }
 
-    for (const auto &row_a : rows) {
-      const Value &value_a = row_a[col_idx_a];
-      for (const auto &row_b : table_b.rows) {
-        const Value &value_b = row_b[col_idx_b];
+    // Function to get table and column index from a qualified name (table.column)
+    auto getTableColumnIndex = [&](const std::string& qualified_name) -> std::pair<Table*, size_t> {
+      size_t dot_pos = qualified_name.find('.');
+      if (dot_pos == std::string::npos) {
+        throw TableError("Column name must be qualified with table name: " + qualified_name);
+      }
+      
+      std::string table_name = qualified_name.substr(0, dot_pos);
+      std::string column_name = qualified_name.substr(dot_pos + 1);
+      
+      auto table_idx_it = table_indices.find(table_name);
+      if (table_idx_it == table_indices.end()) {
+        throw TableError("Table not found: " + table_name);
+      }
+      
+      Table* table = all_tables[table_idx_it->second];
+      
+      // Calculate the correct column index based on the table's position
+      size_t base_index = 0;
+      for (size_t i = 0; i < table_idx_it->second; ++i) {
+        base_index += all_tables[i]->columns.size();
+      }
+      
+      auto col_idx_it = table->column_index.find(column_name);
+      if (col_idx_it == table->column_index.end()) {
+        throw TableError("Column not found: " + column_name + " in table " + table_name);
+      }
+      
+      return {table, base_index + col_idx_it->second};
+    };
 
-        if (value_a == value_b) {
-          std::vector<Value> combined_row;
-          for (const auto &val : row_a) {
-            combined_row.push_back(val);
+    // Initialize results with column names
+    std::vector<std::vector<Value>> results;
+    std::vector<Value> header;
+    for (const auto& col : stmt.selected_columns) {
+      header.push_back(Value(col));
+    }
+    results.push_back(header);
+
+    // Helper function to get column value from a row
+    auto getColumnValue = [](const std::vector<Value>& row, size_t col_idx) -> const Value& {
+      if (col_idx >= row.size()) {
+        throw TableError("Column index out of range: " + std::to_string(col_idx));
+      }
+      return row[col_idx];
+    };
+
+    // Helper function to check join condition
+    auto checkJoinCondition = [](const Value& val1, const Value& val2, TokenType op) -> bool {
+      switch (op) {
+        case TokenType::EQUALS:
+          return val1 == val2;
+        case TokenType::GREATER_THAN:
+          return val1 > val2;
+        case TokenType::LESS_THAN:
+          return val1 < val2;
+        case TokenType::INEQUALS:
+          return val1 != val2;
+        default:
+          throw TableError("Unsupported operator in join condition");
+      }
+    };
+
+    // Start with rows from the first table
+    std::vector<std::vector<Value>> current_results;
+    for (const auto& row : rows) {
+      current_results.push_back(row);
+    }
+
+    // For each join condition
+    for (size_t i = 0; i < stmt.join_conditions.size(); ++i) {
+      const auto& condition = stmt.join_conditions[i];
+      TokenType op = stmt.join_operators[i];
+      
+      auto [table_a, col_idx_a] = getTableColumnIndex(condition.first);
+      auto [table_b, col_idx_b] = getTableColumnIndex(condition.second);
+      
+      std::vector<std::vector<Value>> new_results;
+      
+      // For each row in current results
+      for (const auto& current_row : current_results) {
+        // For each row in the table we're joining with
+        for (const auto& row_b : table_b->rows) {
+          // Get the actual values for comparison
+          Value val_a;
+          if (table_a == this) {
+            val_a = current_row[col_idx_a % columns.size()];
+          } else {
+            size_t actual_idx = col_idx_a - columns.size();
+            val_a = row_b[actual_idx];
           }
-          for (const auto &val : row_b) {
-            combined_row.push_back(val);
-          }
 
-          results.push_back(combined_row);
+          Value val_b;
+          if (table_b == this) {
+            val_b = current_row[col_idx_b % columns.size()];
+          } else {
+            val_b = row_b[col_idx_b % table_b->columns.size()];
+          }
+          
+          if (checkJoinCondition(val_a, val_b, op)) {
+            // Combine the rows
+            std::vector<Value> combined_row = current_row;
+            combined_row.insert(combined_row.end(), row_b.begin(), row_b.end());
+            new_results.push_back(combined_row);
+          }
         }
       }
+      
+      current_results = std::move(new_results);
+    }
+
+    // Apply WHERE condition if present
+    if (stmt.where_condition) {
+      std::vector<std::vector<Value>> filtered_results;
+      for (const auto& row : current_results) {
+        bool matches = true;
+        
+        // Get values for the condition
+        auto [table_a, col_idx_a] = getTableColumnIndex(stmt.where_condition->column_name_a);
+        const Value& val_a = getColumnValue(row, col_idx_a);
+        Value condition_val_a = convertTokenToValue(stmt.where_condition->value_a);
+        
+        matches = checkJoinCondition(val_a, condition_val_a, stmt.where_condition->condition_type_a);
+        
+        if (stmt.where_condition->logic_operator != TokenType::EOF_TOKEN) {
+          auto [table_b, col_idx_b] = getTableColumnIndex(stmt.where_condition->column_name_b);
+          const Value& val_b = getColumnValue(row, col_idx_b);
+          Value condition_val_b = convertTokenToValue(stmt.where_condition->value_b);
+          
+          bool second_condition = checkJoinCondition(val_b, condition_val_b, 
+                                                   stmt.where_condition->condition_type_b);
+          
+          if (stmt.where_condition->logic_operator == TokenType::AND) {
+            matches = matches && second_condition;
+          } else if (stmt.where_condition->logic_operator == TokenType::OR) {
+            matches = matches || second_condition;
+          }
+        }
+        
+        if (matches) {
+          filtered_results.push_back(row);
+        }
+      }
+      current_results = std::move(filtered_results);
+    }
+
+    // Select only the requested columns
+    for (const auto& row : current_results) {
+      std::vector<Value> selected_row;
+      for (const auto& col : stmt.selected_columns) {
+        auto [table, col_idx] = getTableColumnIndex(col);
+        size_t actual_idx;
+        if (table == this) {
+          actual_idx = col_idx % columns.size();
+        } else {
+          actual_idx = col_idx % table->columns.size();
+          actual_idx += columns.size();
+        }
+        if (actual_idx >= row.size()) {
+          throw TableError("Column index out of range: " + std::to_string(actual_idx));
+        }
+        selected_row.push_back(row[actual_idx]);
+      }
+      results.push_back(selected_row);
     }
 
     file_writer.write(results);

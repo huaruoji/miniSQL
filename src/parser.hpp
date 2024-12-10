@@ -53,9 +53,10 @@ public:
     default:
       throwError("Unexpected token at start of statement", first_token_line);
     }
-    if (!consume(TokenType::SEMICOLON)) {
-      throwError("Expected SEMICOLON at end of statement");
-    }
+    
+    // This line should never be reached because throwError will throw an exception
+    // but we need it to satisfy the compiler
+    return nullptr;
   }
 
 private:
@@ -82,42 +83,81 @@ private:
 
   std::unique_ptr<WhereCondition> parseWhereCondition() {
     auto where_condition = std::make_unique<WhereCondition>();
-    where_condition->column_name_a = current_token.value;
+    
+    // Parse first column name (with optional table prefix)
+    std::string first_part = current_token.value;
     if (!consume(TokenType::IDENTIFIER)) {
-      throwError("Expected column name after WHERE");
+      throwError("Expected column name or table name after WHERE");
     }
+    
+    // Check if there's a dot after the identifier
+    if (match(TokenType::DOT)) {
+      // This is a table.column format
+      consume(TokenType::DOT);
+      std::string second_part = current_token.value;
+      if (!consume(TokenType::IDENTIFIER)) {
+        throwError("Expected column name after DOT");
+      }
+      where_condition->column_name_a = first_part + "." + second_part;
+    } else {
+      // This is just a column name
+      where_condition->column_name_a = first_part;
+    }
+    
     where_condition->condition_type_a = current_token.type;
     if (!consume(TokenType::GREATER_THAN) && !consume(TokenType::LESS_THAN) &&
         !consume(TokenType::EQUALS) && !consume(TokenType::INEQUALS)) {
       throwError("Expected operator after column name");
     }
+    
     where_condition->value_a = current_token;
     if (!(consume(TokenType::STRING_LITERAL) ||
           consume(TokenType::INTEGER_LITERAL) ||
-          consume(TokenType::FLOAT_LITERAL))) {
+          consume(TokenType::FLOAT_LITERAL) ||
+          consume(TokenType::IDENTIFIER))) {  // Allow column names as values
       throwError(
-          "Expected STRING_LITERAL, INTEGER_LITERAL, or FLOAT_LITERAL "
-          "after operator");
+          "Expected STRING_LITERAL, INTEGER_LITERAL, FLOAT_LITERAL, "
+          "or column name after operator");
     }
+    
     if (match(TokenType::AND) || match(TokenType::OR)) {
       where_condition->logic_operator = current_token.type;
       advance();
-      where_condition->column_name_b = current_token.value;
+      
+      // Parse second column name (with optional table prefix)
+      first_part = current_token.value;
       if (!consume(TokenType::IDENTIFIER)) {
-        throwError("Expected column name after logic operator");
+        throwError("Expected column name or table name after logic operator");
       }
+      
+      // Check if there's a dot after the identifier
+      if (match(TokenType::DOT)) {
+        // This is a table.column format
+        consume(TokenType::DOT);
+        std::string second_part = current_token.value;
+        if (!consume(TokenType::IDENTIFIER)) {
+          throwError("Expected column name after DOT");
+        }
+        where_condition->column_name_b = first_part + "." + second_part;
+      } else {
+        // This is just a column name
+        where_condition->column_name_b = first_part;
+      }
+      
       where_condition->condition_type_b = current_token.type;
       if (!consume(TokenType::GREATER_THAN) && !consume(TokenType::LESS_THAN) &&
           !consume(TokenType::EQUALS) && !consume(TokenType::INEQUALS)) {
         throwError("Expected operator after column name");
       }
+      
       where_condition->value_b = current_token;
       if (!(consume(TokenType::STRING_LITERAL) ||
             consume(TokenType::INTEGER_LITERAL) ||
-            consume(TokenType::FLOAT_LITERAL))) {
+            consume(TokenType::FLOAT_LITERAL) ||
+            consume(TokenType::IDENTIFIER))) {  // Allow column names as values
         throwError(
-            "Expected STRING_LITERAL, INTEGER_LITERAL, or FLOAT_LITERAL "
-            "after operator");
+            "Expected STRING_LITERAL, INTEGER_LITERAL, FLOAT_LITERAL, "
+            "or column name after operator");
       }
     }
 
@@ -313,86 +353,94 @@ private:
   std::unique_ptr<InnerJoinStatement> parseInnerJoin() {
     auto statement = std::make_unique<InnerJoinStatement>();
     statement->line_number = current_token.line_number;
-    statement->table_name_a = current_token.value;
-    if (!consume(TokenType::IDENTIFIER)) {
-      throwError("Expected table name after SELECT");
-    }
-    if (!consume(TokenType::DOT)) {
-      throwError("Expected DOT after table name");
-    }
-    statement->column_name_a = current_token.value;
-    if (!consume(TokenType::IDENTIFIER)) {
-      throwError("Expected column name after DOT");
-    }
-    if (!consume(TokenType::COMMA)) {
-      throwError("Expected COMMA after column name");
-    }
-    statement->table_name_b = current_token.value;
-    if (!consume(TokenType::IDENTIFIER)) {
-      throwError("Expected table name after SELECT");
-    }
-    if (!consume(TokenType::DOT)) {
-      throwError("Expected DOT after table name");
-    }
-    statement->column_name_b = current_token.value;
-    if (!consume(TokenType::IDENTIFIER)) {
-      throwError("Expected column name after DOT");
-    }
+
+    // Parse selected columns
+    do {
+      std::string table_name = current_token.value;
+      if (!consume(TokenType::IDENTIFIER)) {
+        throwError("Expected table name after SELECT");
+      }
+      if (!consume(TokenType::DOT)) {
+        throwError("Expected DOT after table name");
+      }
+      std::string column_name = current_token.value;
+      if (!consume(TokenType::IDENTIFIER)) {
+        throwError("Expected column name after DOT");
+      }
+      statement->selected_columns.push_back(table_name + "." + column_name);
+    } while (consume(TokenType::COMMA));
+
+    // Parse FROM clause
     if (!consume(TokenType::FROM)) {
-      throwError("Expected FROM after column name");
+      throwError("Expected FROM after column list");
     }
-    if (current_token.value != statement->table_name_a) {
-      throwError("Expected table name to be " + statement->table_name_a);
-    }
+
+    // Parse first table
+    statement->tables.push_back(current_token.value);
     if (!consume(TokenType::IDENTIFIER)) {
       throwError("Expected table name after FROM");
     }
-    if (!consume(TokenType::INNER)) {
-      throwError("Expected INNER after table name");
+
+    // Parse INNER JOIN clauses
+    while (consume(TokenType::INNER)) {
+      if (!consume(TokenType::JOIN)) {
+        throwError("Expected JOIN after INNER");
+      }
+
+      // Get the next table name
+      statement->tables.push_back(current_token.value);
+      if (!consume(TokenType::IDENTIFIER)) {
+        throwError("Expected table name after JOIN");
+      }
+
+      // Parse ON condition
+      if (!consume(TokenType::ON)) {
+        throwError("Expected ON after table name");
+      }
+
+      // Parse join condition
+      std::string table_name_a = current_token.value;
+      if (!consume(TokenType::IDENTIFIER)) {
+        throwError("Expected table name");
+      }
+      if (!consume(TokenType::DOT)) {
+        throwError("Expected DOT after table name");
+      }
+      std::string column_name_a = current_token.value;
+      if (!consume(TokenType::IDENTIFIER)) {
+        throwError("Expected column name after DOT");
+      }
+
+      // Parse operator
+      TokenType operator_type = current_token.type;
+      if (!(consume(TokenType::EQUALS) || consume(TokenType::GREATER_THAN) ||
+            consume(TokenType::LESS_THAN) || consume(TokenType::INEQUALS))) {
+        throwError("Expected comparison operator");
+      }
+      statement->join_operators.push_back(operator_type);
+
+      // Parse second part of condition
+      std::string table_name_b = current_token.value;
+      if (!consume(TokenType::IDENTIFIER)) {
+        throwError("Expected table name");
+      }
+      if (!consume(TokenType::DOT)) {
+        throwError("Expected DOT after table name");
+      }
+      std::string column_name_b = current_token.value;
+      if (!consume(TokenType::IDENTIFIER)) {
+        throwError("Expected column name after DOT");
+      }
+
+      // Add join condition
+      statement->join_conditions.emplace_back(
+          table_name_a + "." + column_name_a,
+          table_name_b + "." + column_name_b);
     }
-    if (!consume(TokenType::JOIN)) {
-      throwError("Expected JOIN after INNER");
-    }
-    if (current_token.value != statement->table_name_b) {
-      throwError("Expected table name to be " + statement->table_name_b);
-    }
-    if (!consume(TokenType::IDENTIFIER)) {
-      throwError("Expected table name after JOIN");
-    }
-    if (!consume(TokenType::ON)) {
-      throwError("Expected ON after JOIN");
-    }
-    if (current_token.value != statement->table_name_a) {
-      throwError("Expected table name to be " + statement->table_name_a);
-    }
-    if (!consume(TokenType::IDENTIFIER)) {
-      throwError("Expected table name after ON");
-    }
-    if (!consume(TokenType::DOT)) {
-      throwError("Expected DOT after column name");
-    }
-    statement->condition_column_name_a = current_token.value;
-    if (!consume(TokenType::IDENTIFIER)) {
-      throwError("Expected column name after DOT");
-    }
-    statement->condition_type = current_token.type;
-    if (!(consume(TokenType::EQUALS) || consume(TokenType::GREATER_THAN) ||
-          consume(TokenType::LESS_THAN) || consume(TokenType::INEQUALS))) {
-      throwError("Expected EQUALS, GREATER_THAN, LESS_THAN, or INEQUALS "
-                 "after column name");
-    }
-    if (current_token.value != statement->table_name_b) {
-      throwError("Expected table name to be " + statement->table_name_b);
-    }
-    if (!consume(TokenType::IDENTIFIER)) {
-      throwError("Expected column name after EQUALS");
-    }
-    if (!consume(TokenType::DOT)) {
-      throwError("Expected DOT after column name");
-    }
-    statement->condition_column_name_b = current_token.value;
-    if (!consume(TokenType::IDENTIFIER)) {
-      throwError("Expected column name after DOT");
+
+    // Parse optional WHERE clause
+    if (consume(TokenType::WHERE)) {
+      statement->where_condition = parseWhereCondition();
     }
 
     return statement;
