@@ -367,13 +367,32 @@ std::vector<Statement> splitStatements(std::ifstream &input_file) {
 
     current_statement += line;
 
-    // If line ends with semicolon, we have a complete statement
-    if (line.back() == ';') {
-      statements.emplace_back(current_statement, start_line);
+    // Process all semicolons in the line
+    size_t pos = 0;
+    size_t semicolon_pos;
+    std::string remaining = current_statement;
+    
+    while ((semicolon_pos = remaining.find(';', pos)) != std::string::npos) {
+      // Extract the statement up to the semicolon
+      std::string statement = remaining.substr(0, semicolon_pos + 1);
+      statements.emplace_back(statement, start_line);
+      
+      // Move past the semicolon for next search
+      remaining = remaining.substr(semicolon_pos + 1);
+      // Trim leading whitespace from remaining
+      size_t first = remaining.find_first_not_of(" \t\r\n");
+      if (first != std::string::npos) {
+        remaining = remaining.substr(first);
+      } else {
+        remaining.clear();
+      }
+    }
+    
+    if (remaining.empty()) {
       current_statement.clear();
       start_line = line_number + 1;
     } else {
-      current_statement += ' ';
+      current_statement = remaining + ' ';
     }
   }
 
