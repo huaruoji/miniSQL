@@ -14,6 +14,12 @@ public:
     TokenType first_token = current_token.type;
     int first_token_line = current_token.line_number;
     advance();
+    
+    // Handle semicolon-only or empty statements
+    if (first_token == TokenType::SEMICOLON || first_token == TokenType::EOF_TOKEN) {
+      return nullptr;
+    }
+    
     switch (first_token) {
     case TokenType::CREATE:
       if (consume(TokenType::DATABASE)) {
@@ -46,9 +52,6 @@ public:
 
     case TokenType::DELETE:
       return parseDelete();
-
-    case TokenType::EOF_TOKEN:
-      return nullptr;
 
     default:
       throwError("Unexpected token at start of statement", first_token_line);

@@ -54,6 +54,10 @@ int main(int argc, char *argv[]) {
     for (const auto &statement : statements) {
       std::unique_ptr<SQLStatement> parsed_statement =
           Parser(statement.content, statement.start_line).parse();
+      // Skip empty statements or statements with only semicolon
+      if (!parsed_statement) {
+        continue;
+      }
       if (parsed_statement->type == SQLStatementType::CREATE_DATABASE) {
         if (databases.find(parsed_statement->getDatabaseName()) !=
             databases.end()) {
