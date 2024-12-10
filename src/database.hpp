@@ -79,29 +79,30 @@ public:
     }
     case SQLStatementType::INNER_JOIN: {
       auto inner_join_stmt = static_cast<InnerJoinStatement *>(stmt);
-      
+
       // Check if all tables exist
-      for (const auto& table_name : inner_join_stmt->tables) {
+      for (const auto &table_name : inner_join_stmt->tables) {
         if (tables.find(table_name) == tables.end()) {
           throw DatabaseError("Table does not exist: " + table_name,
                               inner_join_stmt->line_number);
         }
       }
-      
+
       // Get all tables except the first one
       std::vector<std::unique_ptr<Table>> other_tables;
       for (size_t i = 1; i < inner_join_stmt->tables.size(); ++i) {
         other_tables.push_back(std::move(tables[inner_join_stmt->tables[i]]));
       }
-      
+
       // Perform the join operation
-      tables[inner_join_stmt->tables[0]]->innerJoin(*inner_join_stmt, other_tables);
-      
+      tables[inner_join_stmt->tables[0]]->innerJoin(*inner_join_stmt,
+                                                    other_tables);
+
       // Restore the moved tables
       for (size_t i = 1; i < inner_join_stmt->tables.size(); ++i) {
         tables[inner_join_stmt->tables[i]] = std::move(other_tables[i - 1]);
       }
-      
+
       break;
     }
     default:

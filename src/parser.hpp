@@ -85,116 +85,103 @@ private:
   bool exist(TokenType type) { return lexer.exist(type); }
 
   std::unique_ptr<WhereCondition> parseWhereCondition() {
-    auto where_condition = std::make_unique<WhereCondition>();
+    return parseOrCondition();  // Start with lowest precedence (OR)
+  }
+
+  std::unique_ptr<WhereCondition> parseOrCondition() {
+    auto left = parseAndCondition();
     
-    // Parse first column name (with optional table prefix)
+    while (match(TokenType::OR)) {
+        advance();  // Consume OR token
+        auto node = std::make_unique<WhereCondition>(WhereCondition::NodeType::OPERATOR);
+        node->logic_operator = TokenType::OR;
+        node->left = std::move(left);
+        node->right = parseAndCondition();
+        left = std::move(node);
+    }
+    
+    return left;
+  }
+
+  std::unique_ptr<WhereCondition> parseAndCondition() {
+    auto left = parseAtomicCondition();
+    
+    while (match(TokenType::AND)) {
+        advance();  // Consume AND token
+        auto node = std::make_unique<WhereCondition>(WhereCondition::NodeType::OPERATOR);
+        node->logic_operator = TokenType::AND;
+        node->left = std::move(left);
+        node->right = parseAtomicCondition();
+        left = std::move(node);
+    }
+    
+    return left;
+  }
+
+  std::unique_ptr<WhereCondition> parseAtomicCondition() {
+    if (match(TokenType::LEFT_PAREN)) {
+        advance();  // Consume left parenthesis
+        auto condition = parseOrCondition();  // Recursively parse nested expression
+        if (!consume(TokenType::RIGHT_PAREN)) {
+            throwError("Expected right parenthesis");
+        }
+        return condition;
+    }
+    
+    // Parse a leaf condition (column comparison)
+    auto node = std::make_unique<WhereCondition>(WhereCondition::NodeType::LEAF);
+    
+    // Parse column name (with optional table prefix)
     std::string first_part = current_token.value;
     if (!consume(TokenType::IDENTIFIER)) {
-      throwError("Expected column name or table name after WHERE");
+        throwError("Expected column name or table name");
     }
     
-    // Check if there's a dot after the identifier
+    // Check for table.column format
     if (match(TokenType::DOT)) {
-      // This is a table.column format
-      consume(TokenType::DOT);
-      std::string second_part = current_token.value;
-      if (!consume(TokenType::IDENTIFIER)) {
-        throwError("Expected column name after DOT");
-      }
-      where_condition->column_name_a = first_part + "." + second_part;
+        consume(TokenType::DOT);
+        std::string second_part = current_token.value;
+        if (!consume(TokenType::IDENTIFIER)) {
+            throwError("Expected column name after dot");
+        }
+        node->column_name = first_part + "." + second_part;
     } else {
-      // This is just a column name
-      where_condition->column_name_a = first_part;
+        node->column_name = first_part;
     }
     
-    where_condition->condition_type_a = current_token.type;
+    // Parse comparison operator
+    node->condition_type = current_token.type;
     if (!consume(TokenType::GREATER_THAN) && !consume(TokenType::LESS_THAN) &&
         !consume(TokenType::EQUALS) && !consume(TokenType::INEQUALS)) {
-      throwError("Expected operator after column name");
+        throwError("Expected comparison operator");
     }
     
     // Parse value or column reference
     first_part = current_token.value;
     if (consume(TokenType::IDENTIFIER)) {
-      // Check if this is a table.column format
-      if (match(TokenType::DOT)) {
-        consume(TokenType::DOT);
-        std::string second_part = current_token.value;
-        if (!consume(TokenType::IDENTIFIER)) {
-          throwError("Expected column name after DOT");
-        }
-        where_condition->value_a = Token(TokenType::IDENTIFIER, first_part + "." + second_part);
-      } else {
-        where_condition->value_a = Token(TokenType::IDENTIFIER, first_part);
-      }
-    } else {
-      // Store the current token before consuming it
-      Token value_token = current_token;
-      if (consume(TokenType::STRING_LITERAL) || consume(TokenType::INTEGER_LITERAL) ||
-          consume(TokenType::FLOAT_LITERAL)) {
-        where_condition->value_a = value_token;
-      } else {
-        throwError("Expected value or column reference after operator");
-      }
-    }
-    
-    if (match(TokenType::AND) || match(TokenType::OR)) {
-      where_condition->logic_operator = current_token.type;
-      advance();
-      
-      // Parse second column name (with optional table prefix)
-      first_part = current_token.value;
-      if (!consume(TokenType::IDENTIFIER)) {
-        throwError("Expected column name or table name after logic operator");
-      }
-      
-      // Check if there's a dot after the identifier
-      if (match(TokenType::DOT)) {
-        // This is a table.column format
-        consume(TokenType::DOT);
-        std::string second_part = current_token.value;
-        if (!consume(TokenType::IDENTIFIER)) {
-          throwError("Expected column name after DOT");
-        }
-        where_condition->column_name_b = first_part + "." + second_part;
-      } else {
-        // This is just a column name
-        where_condition->column_name_b = first_part;
-      }
-      
-      where_condition->condition_type_b = current_token.type;
-      if (!consume(TokenType::GREATER_THAN) && !consume(TokenType::LESS_THAN) &&
-          !consume(TokenType::EQUALS) && !consume(TokenType::INEQUALS)) {
-        throwError("Expected operator after column name");
-      }
-      
-      // Parse value or column reference
-      first_part = current_token.value;
-      if (consume(TokenType::IDENTIFIER)) {
-        // Check if this is a table.column format
+        // Check for table.column format
         if (match(TokenType::DOT)) {
-          consume(TokenType::DOT);
-          std::string second_part = current_token.value;
-          if (!consume(TokenType::IDENTIFIER)) {
-            throwError("Expected column name after DOT");
-          }
-          where_condition->value_b = Token(TokenType::IDENTIFIER, first_part + "." + second_part);
+            consume(TokenType::DOT);
+            std::string second_part = current_token.value;
+            if (!consume(TokenType::IDENTIFIER)) {
+                throwError("Expected column name after dot");
+            }
+            node->value = Token(TokenType::IDENTIFIER, first_part + "." + second_part);
         } else {
-          where_condition->value_b = Token(TokenType::IDENTIFIER, first_part);
+            node->value = Token(TokenType::IDENTIFIER, first_part);
         }
-      } else {
+    } else {
         // Store the current token before consuming it
         Token value_token = current_token;
         if (consume(TokenType::STRING_LITERAL) || consume(TokenType::INTEGER_LITERAL) ||
             consume(TokenType::FLOAT_LITERAL)) {
-          where_condition->value_b = value_token;
+            node->value = value_token;
         } else {
-          throwError("Expected value or column reference after operator");
+            throwError("Expected value or column reference");
         }
-      }
     }
-
-    return where_condition;
+    
+    return node;
   }
 
   std::unique_ptr<CreateDatabaseStatement> parseCreateDatabase() {

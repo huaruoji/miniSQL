@@ -227,13 +227,26 @@ enum class SQLStatementType {
 
 // Structure for WHERE conditions in SQL statements
 struct WhereCondition {
-  TokenType logic_operator = TokenType::EOF_TOKEN;
-  std::string column_name_a;
-  std::string column_name_b;
-  TokenType condition_type_a;
-  TokenType condition_type_b;
-  Token value_a;
-  Token value_b;
+    // Node type for the condition tree
+    enum class NodeType {
+        LEAF,       // Single condition (e.g., A > 5)
+        OPERATOR    // Logical operator (AND/OR) with children
+    };
+    
+    NodeType type;
+    
+    // For LEAF nodes
+    std::string column_name;    // Column name for comparison
+    TokenType condition_type;   // Comparison operator (>, <, =, !=)
+    Token value;               // Value to compare against
+    
+    // For OPERATOR nodes
+    TokenType logic_operator;  // AND/OR operator
+    std::unique_ptr<WhereCondition> left;   // Left subtree
+    std::unique_ptr<WhereCondition> right;  // Right subtree
+    
+    // Constructor
+    WhereCondition(NodeType t = NodeType::LEAF) : type(t) {}
 };
 
 // Expression node types
